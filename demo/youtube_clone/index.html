@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="styles/animations.css">
   <link rel="stylesheet" href="styles/layout.css">
   
-  <!-- Standalone AduScript Engine & Dynamic Module Linker via Global jsDelivr CDN -->
+  <!-- Standalone AduScript Engine via Global jsDelivr CDN -->
   <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
 </head>
 <body>
@@ -28,7 +28,293 @@
     </div>
   </div>
 
-  <!-- Load Main AduScript Application Root -->
-  <script type="text/aduscript" src="app.ads"></script>
+  <!-- Pure AduScript Application (Executes natively over file:/// and http:// with zero CORS blocks) -->
+  <script type="text/aduscript">
+    // 1. Dataset
+    let VIDEO_DATASET = [
+      {
+        id: "v1",
+        title: "🪐 Building a 3D Galaxy Simulation from Scratch in AduScript",
+        channel: "AduScript Devs",
+        views: "185K",
+        timestamp: "14:28",
+        timeAgo: "2 days ago",
+        category: "3D WebGL",
+        thumbnail: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=640&q=80",
+        description: "Learn how to use AduScript with Three.js via zero-boilerplate CDN imports and fine-grained reactive state signals!"
+      },
+      {
+        id: "v2",
+        title: "⚡ How AduScript Replaces React, Vue, and Webpack in 2026",
+        channel: "Frontend Mastery",
+        views: "340K",
+        timestamp: "18:05",
+        timeAgo: "5 days ago",
+        category: "AduScript",
+        thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=640&q=80",
+        description: "A comprehensive breakdown of AduScript pipeline operators, pattern matching, and built-in reactivity."
+      },
+      {
+        id: "v3",
+        title: "🎮 Building an Interactive Canvas Game with Pipeline Operators",
+        channel: "GameDev Academy",
+        views: "92K",
+        timestamp: "22:40",
+        timeAgo: "1 week ago",
+        category: "Gaming",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=640&q=80",
+        description: "Watch how clean AduScript functional pipelines make game loop state updates and collisions."
+      },
+      {
+        id: "v4",
+        title: "🤖 Modern AI Agent Toolchains: The Complete Guide",
+        channel: "Tech Tomorrow",
+        views: "520K",
+        timestamp: "31:12",
+        timeAgo: "3 days ago",
+        category: "AI",
+        thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=640&q=80",
+        description: "Deep dive into next-generation intelligent coding agents and reactive compilers."
+      }
+    ]
+
+    // 2. Reactive State Signals
+    state activeNav = "home"
+    state isSidebarCollapsed = false
+    state searchQuery = ""
+    state activeCategory = "All"
+    state selectedVideo = null
+    state isPlaying = true
+    state isLiked = false
+    state isSubscribed = false
+    state activeComments = [
+      { id: "c1", author: "Sarah Connor", avatar: "S", time: "1 day ago", text: "AduScript is shockingly fast! The zero-boilerplate CDN feature is amazing." },
+      { id: "c2", author: "Alex Rivers", avatar: "A", time: "2 days ago", text: "The pipeline operator |> makes data filtering look so much cleaner than standard JS." }
+    ]
+
+    let CATEGORIES = ["All", "AduScript", "3D WebGL", "Gaming", "AI"]
+
+    // 3. Action Handlers
+    fn handleSelectVideo(video) {
+      selectedVideo.value = video
+      isPlaying.value = true
+      isLiked.value = false
+      isSubscribed.value = false
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+
+    fn handleBackToHome() {
+      selectedVideo.value = null
+    }
+
+    fn handleToggleSidebar() {
+      isSidebarCollapsed.value = !isSidebarCollapsed.value
+    }
+
+    fn handleAddComment(e) {
+      if (e.key == "Enter" && e.target.value.trim()) {
+        let newC = {
+          id: f"c_{Date.now()}",
+          author: "AduScript Developer",
+          avatar: "A",
+          time: "Just now",
+          text: e.target.value.trim()
+        }
+        activeComments.value = [newC, ...activeComments.value]
+        e.target.value = ""
+      }
+    }
+
+    // 4. View Renderers
+    fn renderNavbar() {
+      return $adu.html`
+        <header class="yt-navbar">
+          <div class="yt-nav-left">
+            <button class="yt-icon-btn interactive-btn" onclick=${handleToggleSidebar} title="Toggle Sidebar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+
+            <div class="yt-logo" onclick=${handleBackToHome} title="AduScript YouTube">
+              ${$adu.logo(28)}
+              <span class="yt-logo-text" style="margin-left:4px;">AduTube</span>
+              <span class="yt-logo-sub">ADS</span>
+            </div>
+          </div>
+
+          <div class="yt-nav-center">
+            <div class="yt-search-container">
+              <input
+                type="text"
+                class="yt-search-input"
+                placeholder="Search videos in AduScript..."
+                value="${searchQuery.value}"
+                oninput=${(e) -> { searchQuery.value = e.target.value }}
+              />
+              <button class="yt-search-btn" title="Search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="yt-nav-right">
+            <div class="yt-avatar interactive-btn" title="AduScript User">A</div>
+          </div>
+        </header>
+      `
+    }
+
+    fn renderSidebar() {
+      let collapsedClass = isSidebarCollapsed.value ? "collapsed" : ""
+      return $adu.html`
+        <aside class="yt-sidebar ${collapsedClass}">
+          <div class="yt-sidebar-item ${activeNav.value == 'home' ? 'active' : ''}" onclick=${() -> { activeNav.value = 'home'; handleBackToHome() }}>
+            <span class="yt-sidebar-icon">🏠</span>
+            <span class="yt-sidebar-label">Home</span>
+          </div>
+          <div class="yt-sidebar-item ${activeNav.value == 'trending' ? 'active' : ''}" onclick=${() -> { activeNav.value = 'trending'; handleBackToHome() }}>
+            <span class="yt-sidebar-icon">🔥</span>
+            <span class="yt-sidebar-label">Trending</span>
+          </div>
+          <div class="yt-sidebar-item ${activeNav.value == 'library' ? 'active' : ''}" onclick=${() -> { activeNav.value = 'library'; handleBackToHome() }}>
+            <span class="yt-sidebar-icon">📚</span>
+            <span class="yt-sidebar-label">Library</span>
+          </div>
+        </aside>
+      `
+    }
+
+    fn renderFeed() {
+      let filtered = VIDEO_DATASET.filter(v -> {
+        let matchesCat = activeCategory.value == "All" || v.category == activeCategory.value
+        let matchesSearch = searchQuery.value.trim().length == 0 || v.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || v.channel.toLowerCase().includes(searchQuery.value.toLowerCase())
+        return matchesCat && matchesSearch
+      })
+
+      let chips = CATEGORIES.map(cat -> $adu.html`
+        <button class="chip ${activeCategory.value == cat ? 'active' : ''}" onclick=${() -> activeCategory.value = cat}>
+          ${cat}
+        </button>
+      `)
+
+      let cards = filtered.map(v -> $adu.html`
+        <div class="video-card" onclick=${() -> handleSelectVideo(v)}>
+          <div class="thumbnail-container">
+            <img class="thumbnail-img" src="${v.thumbnail}" alt="${v.title}" />
+            <div class="timestamp">${v.timestamp}</div>
+          </div>
+          <div class="video-details">
+            <div class="channel-avatar">${v.channel.charAt(0)}</div>
+            <div class="video-meta">
+              <h3 class="video-title">${v.title}</h3>
+              <div class="channel-name">${v.channel}</div>
+              <div class="video-stats">${v.views} views • ${v.timeAgo}</div>
+            </div>
+          </div>
+        </div>
+      `)
+
+      let collapsedClass = isSidebarCollapsed.value ? "sidebar-collapsed" : ""
+      return $adu.html`
+        <div class="yt-content-viewport ${collapsedClass}">
+          <div class="category-chips">${chips}</div>
+          <div class="video-grid">${cards}</div>
+        </div>
+      `
+    }
+
+    fn renderWatch(video) {
+      let commentsList = activeComments.value.map(c -> $adu.html`
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <div class="channel-avatar" style="background:#C0004D;">${c.avatar}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">${c.author} <span style="font-size:11px;color:#aaa;font-weight:400;">${c.time}</span></div>
+            <div style="font-size:14px;color:#ddd;margin-top:4px;">${c.text}</div>
+          </div>
+        </div>
+      `)
+
+      let collapsedClass = isSidebarCollapsed.value ? "sidebar-collapsed" : ""
+      return $adu.html`
+        <div class="watch-container ${collapsedClass}">
+          <div class="watch-main">
+            <div class="player-viewport">
+              <div class="player-placeholder" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(circle at center, #2a0b17 0%, #080808 100%);">
+                ${$adu.logo(64)}
+                <h2 style="font-size:18px;color:#fff;text-align:center;padding:0 20px;">${video.title}</h2>
+                <div style="font-size:13px;color:#38bdf8;">⚡ Playing live in pure AduScript (.ads) runtime</div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="channel-avatar" style="width:44px;height:44px;font-size:16px;">${video.channel.charAt(0)}</div>
+                <div>
+                  <div style="font-weight:700;font-size:16px;">${video.channel}</div>
+                  <div style="font-size:12px;color:#aaa;">1.2M subscribers</div>
+                </div>
+                <button class="btn-subscribe ${isSubscribed.value ? 'subscribed' : ''}" style="margin-left:12px;" onclick=${() -> isSubscribed.value = !isSubscribed.value}>
+                  ${isSubscribed.value ? '✓ Subscribed' : 'Subscribe'}
+                </button>
+              </div>
+
+              <div style="display:flex;gap:8px;">
+                <button class="yt-search-container" style="padding:8px 16px;border-radius:20px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.2);" onclick=${() -> isLiked.value = !isLiked.value}>
+                  ${isLiked.value ? '❤️ Liked' : '🤍 Like'}
+                </button>
+                <button class="yt-search-container" style="padding:8px 16px;border-radius:20px;cursor:pointer;color:#fff;border:1px solid rgba(255,255,255,0.2);" onclick=${handleBackToHome}>
+                  ✕ Back to Feed
+                </button>
+              </div>
+            </div>
+
+            <div style="background:#222;border-radius:12px;padding:16px;margin-top:16px;font-size:14px;color:#ddd;line-height:1.5;">
+              <div style="font-weight:700;color:#fff;margin-bottom:6px;">${video.views} views • Uploaded ${video.timeAgo}</div>
+              ${video.description}
+            </div>
+
+            <div class="comment-box" style="margin-top:24px;">
+              <h3 style="font-size:16px;margin-bottom:12px;">${activeComments.value.length} Comments</h3>
+              <div class="comment-input-area" style="display:flex;gap:12px;margin-bottom:20px;">
+                <div class="channel-avatar" style="background:#C0004D;">A</div>
+                <input class="comment-input" style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);padding:8px 0;color:#fff;outline:none;font-size:14px;" placeholder="Add a public comment (Press Enter to post)..." onkeydown=${handleAddComment} />
+              </div>
+              <div style="margin-top:16px;">${commentsList}</div>
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    // 5. Main Application Root
+    fn App() {
+      let navbar = renderNavbar()
+      let sidebar = renderSidebar()
+      let content = match selectedVideo.value with {
+        null => renderFeed(),
+        _    => renderWatch(selectedVideo.value)
+      }
+
+      return $adu.html`
+        <div class="app-root">
+          ${navbar}
+          <div class="yt-main-layout">
+            ${sidebar}
+            ${content}
+          </div>
+        </div>
+      `
+    }
+
+    // Mount to DOM
+    $adu.mount("#app-root", App)
+    console.log("✔ AduScript YouTube Clone Mounted Successfully!")
+  </script>
 </body>
 </html>
