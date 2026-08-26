@@ -246,7 +246,51 @@ $adu.css`
 
 ---
 
-### 9. Official Vector SVG Logo Helper
+### 9. Modular File Imports & Subfolders (`.ads`)
+AduScript seamlessly supports multi-file project structures across subfolders with zero build step:
+```aduscript
+// Import functions, components, or constants from subfolder modules
+import { createVoxelWorld, BLOCK_TYPES } from "./engine/world.ads"
+import { createHotbar } from "./components/hotbar.ads"
+import { playBlockBreak } from "./engine/audio.ads"
+
+export fn initGame() {
+  let world = createVoxelWorld()
+  world.generate()
+}
+```
+
+---
+
+### 10. Vector Graphics, Procedural Pixel Art & WebGL (Three.js)
+AduScript natively handles SVGs, procedural dynamic Canvas drawing, and WebGL 3D rendering:
+```aduscript
+use cdn:three as THREE
+
+// In-Memory 16x16 Pixel Art Generator
+export fn createPixelTexture(colorPalette) {
+  let canvas = document.createElement("canvas")
+  canvas.width = 16
+  canvas.height = 16
+  let ctx = canvas.getContext("2d")
+  // Draw procedural pixels...
+  return new THREE.CanvasTexture(canvas)
+}
+
+// Crisp Vector SVGs in Templates
+fn RenderHeart(isFull) {
+  let color = isFull ? "#ff2222" : "#333333"
+  return $adu.html`
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="${color}">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+  `
+}
+```
+
+---
+
+### 11. Official Vector SVG Logo Helper
 Display the official AduScript vector logo anywhere with custom dimensions:
 ```aduscript
 let header = $adu.html`
