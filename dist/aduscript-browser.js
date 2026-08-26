@@ -3790,7 +3790,7 @@ function compile(source, options = {}) {
 function fetchText(url) {
   return new Promise((resolve, reject) => {
     if (typeof fetch === 'function') {
-      fetch(url)
+      fetch(url, { cache: 'no-cache' })
         .then(res => {
           if (res.ok) return res.text();
           throw new Error('HTTP ' + res.status);
