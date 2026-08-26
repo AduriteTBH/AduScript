@@ -818,6 +818,7 @@ export class CodeGenerator {
   function html(strings, ...values) {
     let raw = '';
     const events = [];
+    const slots = [];
     strings.forEach((str, i) => {
       raw += str;
       if (i < values.length) {
@@ -825,11 +826,22 @@ export class CodeGenerator {
         if (typeof val === 'function') {
           const id = '__adu_evt_' + Math.random().toString(36).slice(2, 9);
           events.push({ id, fn: val });
-          raw += 'data-adu-evt="' + id + '"';
+          raw += '"' + id + '"';
+        } else if (val && (val instanceof Node || (Array.isArray(val) && val.some(x => x instanceof Node)))) {
+          const slotId = '__adu_slot_' + Math.random().toString(36).slice(2, 9);
+          slots.push({ id: slotId, node: val });
+          raw += '<span data-adu-slot="' + slotId + '"></span>';
         } else if (val && typeof val === 'object' && val.value !== undefined) {
-          raw += String(val.value);
+          const sVal = val.value;
+          if (sVal && (sVal instanceof Node || (Array.isArray(sVal) && sVal.some(x => x instanceof Node)))) {
+            const slotId = '__adu_slot_' + Math.random().toString(36).slice(2, 9);
+            slots.push({ id: slotId, node: sVal });
+            raw += '<span data-adu-slot="' + slotId + '"></span>';
+          } else {
+            raw += sVal !== undefined && sVal !== null ? sVal : '';
+          }
         } else if (Array.isArray(val)) {
-          raw += val.map(item => (item && item.value !== undefined ? String(item.value) : String(item || ''))).join('');
+          raw += val.map(item => (item && item.value !== undefined ? item.value : (item !== undefined && item !== null ? item : ''))).join('');
         } else {
           raw += (val === undefined || val === null) ? '' : String(val);
         }
@@ -839,17 +851,33 @@ export class CodeGenerator {
     const template = document.createElement('template');
     template.innerHTML = raw.trim();
     const fragment = template.content;
-    events.forEach(({ id, fn }) => {
-      const target = fragment.querySelector('[data-adu-evt="' + id + '"]');
-      if (target) {
-        target.removeAttribute('data-adu-evt');
-        const attrMatches = [...raw.matchAll(/on([a-z]+)=["']?data-adu-evt/gi)];
-        attrMatches.forEach(m => {
-          target.addEventListener(m[1].toLowerCase(), fn);
-          target.removeAttribute('on' + m[1].toLowerCase());
-        });
+    for (const { id, node } of slots) {
+      const slotEl = fragment.querySelector('[data-adu-slot="' + id + '"]');
+      if (slotEl) {
+        if (Array.isArray(node)) {
+          const nodesToInsert = [];
+          for (const item of node) {
+            if (item instanceof Node) nodesToInsert.push(item);
+            else if (item !== undefined && item !== null) nodesToInsert.push(document.createTextNode(String(item)));
+          }
+          slotEl.replaceWith(...nodesToInsert);
+        } else if (node instanceof Node) {
+          slotEl.replaceWith(node);
+        }
       }
-    });
+    }
+    for (const { id, fn } of events) {
+      const allMatching = fragment.querySelectorAll('*');
+      for (const el of allMatching) {
+        for (const attr of el.getAttributeNames()) {
+          if (el.getAttribute(attr) === id) {
+            el.removeAttribute(attr);
+            const eventName = attr.startsWith('on') ? attr.slice(2).toLowerCase() : attr.toLowerCase();
+            el.addEventListener(eventName, fn);
+          }
+        }
+      }
+    }
     return fragment.childElementCount === 1 ? fragment.firstElementChild : fragment;
   }
   function css(strings, ...values) {

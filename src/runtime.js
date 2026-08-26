@@ -161,12 +161,12 @@ export function bind(el, prop, signal) {
  */
 export function html(strings, ...values) {
   if (typeof document === 'undefined') {
-    // SSR / Node fallback
     return strings.reduce((acc, str, i) => acc + str + (values[i] !== undefined ? values[i] : ''), '');
   }
 
   let markup = '';
   const listeners = [];
+  const slots = [];
 
   strings.forEach((str, i) => {
     markup += str;
@@ -176,10 +176,22 @@ export function html(strings, ...values) {
         const handlerId = `__adu_evt_${Math.random().toString(36).slice(2, 9)}`;
         listeners.push({ id: handlerId, fn: val });
         markup += `"${handlerId}"`;
-      } else if (val instanceof Signal) {
-        markup += val.value;
+      } else if (val && (val instanceof Node || (Array.isArray(val) && val.some(x => x instanceof Node)))) {
+        const slotId = `__adu_slot_${Math.random().toString(36).slice(2, 9)}`;
+        slots.push({ id: slotId, node: val });
+        markup += `<span data-adu-slot="${slotId}"></span>`;
+      } else if (val && typeof val === 'object' && val.value !== undefined) {
+        // Signal / State
+        const sVal = val.value;
+        if (sVal && (sVal instanceof Node || (Array.isArray(sVal) && sVal.some(x => x instanceof Node)))) {
+          const slotId = `__adu_slot_${Math.random().toString(36).slice(2, 9)}`;
+          slots.push({ id: slotId, node: sVal });
+          markup += `<span data-adu-slot="${slotId}"></span>`;
+        } else {
+          markup += sVal !== undefined && sVal !== null ? sVal : '';
+        }
       } else if (Array.isArray(val)) {
-        markup += val.join('');
+        markup += val.map(item => (item && item.value !== undefined ? item.value : (item !== undefined && item !== null ? item : ''))).join('');
       } else if (val !== undefined && val !== null) {
         markup += val;
       }
@@ -190,20 +202,41 @@ export function html(strings, ...values) {
   template.innerHTML = markup.trim();
   const fragment = template.content;
 
-  // Attach event handlers
+  // 1. Replace slot placeholders with actual DOM Nodes
+  for (const { id, node } of slots) {
+    const slotEl = fragment.querySelector(`[data-adu-slot="${id}"]`);
+    if (slotEl) {
+      if (Array.isArray(node)) {
+        const nodesToInsert = [];
+        for (const item of node) {
+          if (item instanceof Node) {
+            nodesToInsert.push(item);
+          } else if (item !== undefined && item !== null) {
+            nodesToInsert.push(document.createTextNode(String(item)));
+          }
+        }
+        slotEl.replaceWith(...nodesToInsert);
+      } else if (node instanceof Node) {
+        slotEl.replaceWith(node);
+      }
+    }
+  }
+
+  // 2. Attach event handlers across standard event attributes
   for (const { id, fn } of listeners) {
-    const el = fragment.querySelector(`[onclick="${id}"], [oninput="${id}"], [onchange="${id}"], [onsubmit="${id}"]`);
-    if (el) {
-      for (const attr of ['onclick', 'oninput', 'onchange', 'onsubmit']) {
+    const allMatching = fragment.querySelectorAll('*');
+    for (const el of allMatching) {
+      for (const attr of el.getAttributeNames()) {
         if (el.getAttribute(attr) === id) {
           el.removeAttribute(attr);
-          el.addEventListener(attr.slice(2), fn);
+          const eventName = attr.startsWith('on') ? attr.slice(2).toLowerCase() : attr.toLowerCase();
+          el.addEventListener(eventName, fn);
         }
       }
     }
   }
 
-  return fragment.children.length === 1 ? fragment.firstElementChild : fragment;
+  return fragment.childElementCount === 1 ? fragment.firstElementChild : fragment;
 }
 
 /**
@@ -224,23 +257,30 @@ export function css(strings, ...values) {
 }
 
 /**
- * Mounts a reactive component or template into a container element and keeps it updated.
- * Usage: mount('#app', () -> html`<div class="counter">${count.value}</div>`)
+ * Component Mount Helper
+ * Mounts a reactive render function to a root DOM container.
  */
 export function mount(container, renderFn) {
-  if (typeof document === 'undefined') return;
-  const target = typeof container === 'string' ? document.querySelector(container) : container;
-  if (!target) return;
+  const el = typeof container === 'string'
+    ? (typeof document !== 'undefined' ? document.querySelector(container) : null)
+    : container;
 
-  effect(() => {
-    const result = typeof renderFn === 'function' ? renderFn() : renderFn;
-    target.innerHTML = '';
-    if (typeof result === 'string') {
-      target.innerHTML = result;
-    } else if (result instanceof Node) {
-      target.appendChild(result);
+  if (!el) {
+    console.warn(`[AduScript Mount] Container '${container}' not found.`);
+    return;
+  }
+
+  const effectFn = () => {
+    const rendered = renderFn();
+    if (typeof rendered === 'string') {
+      el.innerHTML = rendered;
+    } else if (rendered instanceof Node) {
+      el.innerHTML = '';
+      el.appendChild(rendered);
     }
-  });
+  };
+
+  effect(effectFn);
 }
 
 /**
