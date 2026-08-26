@@ -3789,8 +3789,9 @@ function compile(source, options = {}) {
 
 function fetchText(url) {
   return new Promise((resolve, reject) => {
+    const bustUrl = url + (url.includes('?') ? '&' : '?') + '_adu=' + Date.now();
     if (typeof fetch === 'function') {
-      fetch(url, { cache: 'no-cache' })
+      fetch(bustUrl, { cache: 'no-store' })
         .then(res => {
           if (res.ok) return res.text();
           throw new Error('HTTP ' + res.status);
@@ -3799,7 +3800,8 @@ function fetchText(url) {
         .catch(fetchErr => {
           try {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
+            xhr.open('GET', bustUrl, true);
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
             xhr.onload = () => {
               if (xhr.status === 200 || xhr.status === 0) {
                 resolve(xhr.responseText);
@@ -3816,7 +3818,8 @@ function fetchText(url) {
     } else {
       try {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
+        xhr.open('GET', bustUrl, true);
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
         xhr.onload = () => {
           if (xhr.status === 200 || xhr.status === 0) resolve(xhr.responseText);
           else reject(new Error('HTTP ' + xhr.status));
@@ -3941,6 +3944,15 @@ const AduScript = {
 
 global.AduScript = AduScript;
 global.$adu = $adu;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (e) => {
+    if (e.error) displayErrorBanner(e.error);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    if (e.reason) displayErrorBanner(e.reason);
+  });
+}
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
