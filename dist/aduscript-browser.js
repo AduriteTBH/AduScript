@@ -3915,14 +3915,29 @@ async function scanAndRunScripts() {
 
 function displayErrorBanner(err) {
   if (typeof document === 'undefined') return;
+  const msg = err && (err.message || String(err));
+  if (!msg) return;
+
+  // Ignore benign browser/extension noise
+  if (msg.includes('Pointer lock') || msg.includes('Receiving end does not exist') || msg.includes('ResizeObserver') || msg.includes('favicon')) {
+    return;
+  }
+
   let banner = document.getElementById('adu-error-banner');
   if (!banner) {
     banner = document.createElement('div');
     banner.id = 'adu-error-banner';
-    banner.style.cssText = 'position:fixed;bottom:20px;right:20px;max-width:500px;background:#1e1e24;color:#ff5555;padding:16px 20px;border-left:4px solid #ff5555;border-radius:8px;font-family:monospace;font-size:13px;z-index:999999;box-shadow:0 10px 30px rgba(0,0,0,0.5);line-height:1.5;white-space:pre-wrap;';
+    banner.style.cssText = 'position:fixed;bottom:16px;right:16px;max-width:440px;background:#18181b;color:#fca5a5;border:1px solid #3f3f46;border-radius:6px;padding:12px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;z-index:999999;box-shadow:0 8px 24px rgba(0,0,0,0.6);line-height:1.5;display:flex;flex-direction:column;gap:6px;';
     document.body.appendChild(banner);
   }
-  banner.textContent = err.message || String(err);
+
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span style="font-weight:600;color:#f87171;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">AduScript Notice</span>
+      <span style="cursor:pointer;color:#a1a1aa;font-size:16px;line-height:1;padding:0 2px;" onclick="this.closest('#adu-error-banner').remove()">✕</span>
+    </div>
+    <div style="font-family:monospace;font-size:12px;color:#e4e4e7;word-break:break-word;white-space:pre-wrap;">${msg}</div>
+  `;
 }
 
 // Attach global
