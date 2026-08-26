@@ -46,6 +46,14 @@
     "threejs",
     "web-development"
   ],
-  "author": "Adurite",
-  "license": "MIT"
+  "author": "AduriteTBH",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AduriteTBH/AduScript.git"
+  },
+  "homepage": "https://github.com/AduriteTBH/AduScript#readme",
+  "bugs": {
+    "url": "https://github.com/AduriteTBH/AduScript/issues"
+  }
 }

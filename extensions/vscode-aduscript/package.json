@@ -36,6 +36,13 @@
         "language": "aduscript",
         "path": "./snippets/aduscript.json"
       }
+    ],
+    "iconThemes": [
+      {
+        "id": "aduscript-icons",
+        "label": "AduScript Icons",
+        "path": "./icons/icon-theme.json"
+      }
     ]
   }
 }

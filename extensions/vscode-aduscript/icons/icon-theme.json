@@ -1,0 +1,13 @@
+{
+  "iconDefinitions": {
+    "_ads_file": {
+      "iconPath": "./aduscript.svg"
+    },
+    "_file": {
+      "iconPath": "./aduscript.svg"
+    }
+  },
+  "fileExtensions": {
+    "ads": "_ads_file"
+  }
+}

@@ -1,47 +1,98 @@
 # 🪐 AduScript (`.ads`)
-### A Clean, Highly Expressive Web Programming Language Compiling to ECMAScript 2024+
+### A Clean, Reactive, Highly Expressive Web Programming Language Compiling to Modern ECMAScript (ES2024+)
 
-![AduScript Logo](./AduScript%20Logo%20128x128.svg)
+<p align="center">
+  <img src="./AduScript%20Logo%20128x128.svg" alt="AduScript Logo" width="128" height="128">
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-6366f1.svg)](https://opensource.org/licenses/MIT)
-[![ECMAScript: 2024+](https://img.shields.io/badge/Target-ECMAScript%202024%2B-38bdf8.svg)](https://tc39.es)
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-10b981.svg)](#)
-[![Tests: 32/32 Passing](https://img.shields.io/badge/Tests-32%2F32%20Passing-emerald.svg)](./tests)
-[![Zero Node.js Required](https://img.shields.io/badge/Client--Side-Zero%20Node.js%20Required-f43f5e.svg)](./quickstart.html)
-
-**AduScript** is a modern, expressive programming language designed from first principles for building complex, interactive web applications and 3D experiences with zero boilerplate, first-class reactive state primitives, pipeline transformation operators, pattern matching, and seamless two-way JavaScript/HTML/CSS interoperability.
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-6366f1.svg" alt="License: MIT"></a>
+  <a href="https://tc39.es"><img src="https://img.shields.io/badge/Target-ECMAScript%202024%2B-38bdf8.svg" alt="Target: ES2024+"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Dependencies-Zero-10b981.svg" alt="Zero Dependencies"></a>
+  <a href="./tests"><img src="https://img.shields.io/badge/Tests-32%2F32%20Passing-emerald.svg" alt="Tests: 32/32 Passing"></a>
+  <a href="./quickstart.html"><img src="https://img.shields.io/badge/Client--Side-Zero%20Node.js%20Required-f43f5e.svg" alt="Zero Node.js Required"></a>
+  <a href="https://github.com/AduriteTBH/AduScript"><img src="https://img.shields.io/badge/CDN-jsDelivr%20Ready-f59e0b.svg" alt="jsDelivr CDN Ready"></a>
+</p>
 
 ---
 
-## ⚡ Zero-Node.js Quickstart (Works in Any Browser Out-of-the-Box)
+## 💡 What is AduScript?
 
-Anyone can use AduScript with HTML and CSS **without Node.js, npm, or any build tools**! Just open [`quickstart.html`](./quickstart.html) or drop `<script src="dist/aduscript-browser.js">` into any HTML file:
+**AduScript** is a modern programming language engineered from first principles for building dynamic web applications, interactive user interfaces, and 3D experiences. 
+
+It eliminates JavaScript boilerplate and heavy framework dependencies by offering **first-class reactive state signals**, **data pipelines**, **expressive pattern matching**, and **zero-boilerplate CDN imports** natively inside the language.
+
+AduScript compiles into clean, high-performance, source-mapped **ECMAScript 2024+ (ES Modules)** that runs natively in every modern web browser, Node.js, Deno, and Bun.
+
+---
+
+## ⚡ Why AduScript is Better
+
+| Feature | Standard JavaScript (ES2024) | React / Vue / Svelte | AduScript (`.ads`) |
+| :--- | :--- | :--- | :--- |
+| **Setup & Dependencies** | Requires bundlers / NPM setup | Heavy node_modules (100MB+) | **Zero dependencies. Works with 0 build tools.** |
+| **Reactive State** | Manual DOM mutation (`document.getElementById`) | Complex hooks (`useState`, `useEffect`, dependency arrays) | **Built-in `state`, `watch`, and `effect`** |
+| **Functional Pipelines** | Ugly nested functions `c(b(a(x)))` | Requires Lodash / Ramda | **Native `\|>` pipeline with `_` placeholders** |
+| **Pattern Matching** | Verbose `switch` / nested `if-else` | Verbose `switch` / nested `if-else` | **Native `match ... with` & range matching (`1..10`)** |
+| **External CDNs** | Messy script tags or bundler configs | Complex `npm install` | **One-line `use cdn:three as THREE`** |
+| **String Formatting** | `` `Hello ${user.name}` `` | `` `Hello ${user.name}` `` | **`f"Hello {user.name}"`** |
+| **HTML / UI Templates** | Manual DOM or Virtual DOM overhead | JSX requires transpiler | **Native `$adu.html` & `$adu.css` templates** |
+
+### 🔍 Code Comparison: Reactive Counter
+
+#### ❌ Vanilla JavaScript (30 lines of boilerplate):
+```javascript
+let count = 0;
+const button = document.createElement('button');
+button.textContent = `Clicks: ${count}`;
+button.onclick = () => {
+  count++;
+  button.textContent = `Clicks: ${count}`;
+};
+document.body.appendChild(button);
+```
+
+#### ✨ AduScript (3 lines of clean code):
+```aduscript
+state count = 0
+fn App() -> $adu.html`<button onclick=${() -> count.value += 1}>Clicks: ${count.value}</button>`
+$adu.mount("#root", App)
+```
+
+---
+
+## 🌐 5-Second Quickstart (No Node.js / No Installation)
+
+Because AduScript is open and public, anyone can create an `.html` file anywhere in the world and use AduScript immediately:
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!-- Load Standalone AduScript Engine -->
-  <script src="https://cdn.jsdelivr.net/gh/HarisAbidX/AduScript/dist/aduscript-browser.js"></script>
+  <meta charset="UTF-8">
+  <title>My AduScript App</title>
+  <!-- Load AduScript Worldwide CDN Engine -->
+  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
 </head>
 <body>
   <div id="app"></div>
 
-  <!-- Write Pure AduScript with HTML and CSS directly -->
+  <!-- Write Pure AduScript with HTML & CSS directly -->
   <script type="text/aduscript">
     state count = 0
 
-    fn renderApp() {
+    fn render() {
       return $adu.html`
-        <div style="font-family:sans-serif;padding:32px;background:#181818;color:#fff;border-radius:16px;">
-          ${$adu.logo(40)}
-          <h2>Clicks: ${count.value}</h2>
+        <div style="font-family:sans-serif;padding:36px;background:#181818;color:#fff;border-radius:18px;">
+          ${$adu.logo(48)}
+          <h2>AduScript Live App</h2>
+          <p>Clicks: <b>${count.value}</b></p>
           <button onclick=${() -> count.value += 1}>+ Increment</button>
         </div>
       `
     }
 
-    $adu.mount("#app", renderApp)
+    $adu.mount("#app", render)
   </script>
 </body>
 </html>
@@ -49,241 +100,235 @@ Anyone can use AduScript with HTML and CSS **without Node.js, npm, or any build 
 
 ---
 
-## 🎨 IDE Support & Official SVG Logo
+## 📖 Complete Language Guide & Documentation
 
-* **Official File Icons & Syntax Highlighting:** AduScript includes official VS Code & IDE extension support in [`extensions/vscode-aduscript/`](./extensions/vscode-aduscript) providing `.ads` file icon rendering with the official AduScript SVG logo, TextMate syntax highlighting grammar, and language snippets.
-* **In-App SVG Logo Helper:** Display the official vector logo anywhere in `.ads` templates with `$adu.logo(size)`!
+### 1. Variables: Immutable by Default
+Variables declared with `let` cannot be reassigned (compiled to `const`). For reassignable variables, use `mut` (compiled to `let`):
+```aduscript
+let siteName = "AduScript Portal"  // Immutable
+mut score = 100                    // Mutable
+score = score + 25                 // Allowed
+```
 
 ---
 
-## 🌟 Key Features
+### 2. Built-in Reactive State (`state`, `watch`, `effect`)
+No React, no hooks, and no virtual DOM boilerplate needed. Reactive state is built right into the language:
+```aduscript
+// Declare reactive signal
+state speed = 1.0
 
-* **🛡️ Immutable by Default:** Declarations use `let` for immutable bindings (compiled to `const`) and `mut` for explicitly mutable variables (compiled to `let`).
-* **🔀 First-Class Pipeline Operator (`|>`)**: Clean left-to-right functional data transformations:
-  ```aduscript
-  let total = data |> .filter(isValid) |> .map(extract) |> applyTax(_, 0.08) |> formatCurrency()
-  ```
-* **🎯 Expressive Pattern Matching (`match ... with`)**: Clean, robust pattern matching replacing verbose `switch` and fragile `if-else` trees:
-  ```aduscript
-  let badge = match status with {
-    "online"  => "#10b981",
-    "busy"    => "#f59e0b",
-    { role: "admin" } => "#ec4899",
-    1..10     => "#38bdf8",
-    _         => "#6b7280"
+// Automatic dependency-tracking reaction
+effect {
+  document.title = f"Current Speed: {speed.value}x"
+}
+
+// Watch explicit signal changes
+watch speed => {
+  console.log(f"Speed updated to: {speed.value}")
+}
+
+// Mutate value (automatically triggers reactions & UI updates)
+speed.value = 2.5
+```
+
+---
+
+### 3. Pipeline Operator (`|>`)
+Transform data from left to right cleanly without nested parentheses or temporary variables:
+```aduscript
+fn filterActive(users) -> users.filter(u -> u.active)
+fn getAges(users) -> users.map(u -> u.age)
+fn calculateAverage(ages) -> ages.reduce((a, b) -> a + b, 0) / ages.length
+
+// Left-to-right data pipeline
+let avgAge = usersList
+  |> filterActive()
+  |> getAges()
+  |> calculateAverage()
+```
+
+#### Pipeline Placeholders (`_`):
+Use `_` to pass the piped value into any argument position:
+```aduscript
+fn applyDiscount(rate, price) -> price * (1.0 - rate)
+
+let discountedPrice = 120 |> applyDiscount(0.15, _)
+```
+
+---
+
+### 4. Expressive Pattern Matching (`match ... with`)
+Pattern matching replaces clunky `switch` statements and fragile `if-else` chains. Supports strings, numbers, ranges (`1..10`), objects, and wildcard fallback (`_`):
+```aduscript
+let badgeColor = match user.role with {
+  "admin"     => "#ef4444",
+  "moderator" => "#3b82f6",
+  "member"    => "#10b981",
+  _           => "#6b7280"
+}
+
+let accessLevel = match user.age with {
+  1..12  => "Child",
+  13..17 => "Teen",
+  18..64 => "Adult",
+  _      => "Senior"
+}
+```
+
+---
+
+### 5. Concise Functions
+```aduscript
+// Auto-returning single expression function
+fn add(a, b) -> a + b
+fn square(x) -> x * x
+
+// Multi-statement block function
+fn processOrder(item, quantity) {
+  let subtotal = item.price * quantity
+  let tax = subtotal * 0.08
+  return { subtotal, tax, total: subtotal + tax }
+}
+```
+
+---
+
+### 6. Zero-Boilerplate CDN & Module Imports (`use`)
+Instantly import libraries from CDN or ES modules without package managers or config files:
+```aduscript
+use cdn:three as THREE
+use cdn:gsap as gsap
+use "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/+esm" as confetti
+
+let scene = new THREE.Scene()
+```
+
+---
+
+### 7. Formatted String Interpolation
+```aduscript
+let username = "Haris"
+let score = 950
+console.log(f"Player {username} earned {score} points!")
+```
+
+---
+
+### 8. Native HTML & CSS Templates
+```aduscript
+// Component HTML with event handlers and reactive state
+fn VideoCard(video) {
+  return $adu.html`
+    <div class="video-card" onclick=${() -> playVideo(video.id)}>
+      <img src="${video.thumbnail}" alt="${video.title}"/>
+      <div class="video-info">
+        <h3>${video.title}</h3>
+        <p>${video.channel} • ${video.views} views</p>
+      </div>
+    </div>
+  `
+}
+
+// Injected component styles
+$adu.css`
+  .video-card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #181818;
+    transition: transform 0.2s ease;
   }
-  ```
-* **⚡ Built-in Reactive Primitives (`state`, `watch`, `effect`)**:
-  Fine-grained reactive state signals that automatically track dependencies and dispatch reactions on mutation:
-  ```aduscript
-  state count = 0
-  effect { document.title = f"Clicks: {count.value}" }
-  watch count => { console.log(f"New count: {count.value}") }
-  ```
-* **🌐 Zero-Boilerplate CDN / ESM Interop (`use`)**:
-  Instantly pull CDN packages and standard ES modules into scope without configuration:
-  ```aduscript
-  use cdn:three as THREE
-  use cdn:gsap as gsap
-  use "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/+esm" as confetti
-  ```
-* **✨ Formatted String Interpolation:** `f"Hello {user.name}, your score is {score + 10}!"`
-* **🚀 Auto-Returning Expression Functions:** `fn add(a, b) -> a + b`
-* **📦 Zero Dependencies:** The entire compiler (Lexer, Parser, AST, Codegen, Runtime, In-Browser Engine) is self-contained with 0 third-party runtime dependencies.
-
----
-
-## 🏗️ Compiler Architecture
-
-```mermaid
-flowchart LR
-    subgraph Compiler ["AduScript Core Compiler"]
-        Source[".ads Source Code"] --> Lexer["Lexer (src/lexer.js)"]
-        Lexer --> Tokens["Token Stream"]
-        Tokens --> Parser["Parser (src/parser.js)"]
-        Parser --> AST["Abstract Syntax Tree"]
-        AST --> Codegen["Code Generator (src/codegen.js)"]
-        Codegen --> JS["ES2024+ Output"]
-    end
-
-    subgraph Runtimes ["Execution Environments"]
-        JS --> Browser["Browser Engine (aduscript-browser.js)"]
-        JS --> CLI["Node.js / CLI Runner (bin/aduscript.js)"]
-        Runtime["$adu Reactive Runtime"] -.-> JS
-    end
-
-    subgraph Showcase ["Showcase & Demos"]
-        Browser --> WebIDE["Interactive Studio IDE (demo/index.html)"]
-        Browser --> ThreeDemo["3D Three.js Galaxy (demo/scene.ads)"]
-    end
+  .video-card:hover {
+    transform: translateY(-4px);
+  }
+`
 ```
 
 ---
 
-## 🚀 Quick Start
-
-### 1. In the Browser (Zero Build Step)
-
-Include `dist/aduscript-browser.js` in your HTML page and write `.ads` code directly inside `<script type="text/aduscript">` or link external `.ads` files:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="dist/aduscript-browser.js"></script>
-</head>
-<body>
-  <!-- Inline AduScript -->
-  <script type="text/aduscript">
-    use cdn:three as THREE
-
-    state speed = 1.0
-    fn degToRad(deg) -> deg * (Math.PI / 180)
-
-    let scene = new THREE.Scene()
-    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    let renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    document.body.appendChild(renderer.domElement)
-
-    let geometry = new THREE.TorusKnotGeometry(1.5, 0.4, 128, 32)
-    let material = new THREE.MeshNormalMaterial()
-    let mesh = new THREE.Mesh(geometry, material)
-    scene.add(mesh)
-    camera.position.z = 5
-
-    fn animate() {
-      requestAnimationFrame(animate)
-      mesh.rotation.x += 0.01 * speed.value
-      mesh.rotation.y += 0.02 * speed.value
-      renderer.render(scene, camera)
-    }
-    animate()
-  </script>
-
-  <!-- Remote AduScript File -->
-  <!-- <script type="text/aduscript" src="scene.ads"></script> -->
-</body>
-</html>
+### 9. Official Vector SVG Logo Helper
+Display the official AduScript vector logo anywhere with custom dimensions:
+```aduscript
+let header = $adu.html`
+  <div class="header">
+    ${$adu.logo(36)}
+    <span>AduScript App</span>
+  </div>
+`
 ```
 
-### 2. Command Line Interface (CLI)
+---
 
+## 🛠️ CLI Developer Toolchain
+
+AduScript includes a full-featured, zero-dependency command line toolchain:
+
+### 1. Instant Dev Server (Zero Build Step)
+Starts a local development server with on-the-fly `.ads` compilation:
 ```bash
-# Compile .ads to standard JavaScript ES module
-node bin/aduscript.js demo/scene.ads -o demo/scene.js
-
-# Compile and immediately execute in Node.js
-node bin/aduscript.js demo/pipeline_showcase.ads --run
-
-# Inspect Abstract Syntax Tree (AST)
-node bin/aduscript.js demo/reactive_ui.ads --ast
-
-# Inspect Token Stream
-node bin/aduscript.js demo/scene.ads --tokens
+node bin/aduscript.js dev demo/my_first_app
 ```
 
-### 3. Programmatic Node.js / Module API
-
-```javascript
-import { compile, parse, tokenize, $adu } from 'aduscript';
-
-const source = `
-  state count = 0
-  fn square(x) -> x * x
-  let result = 5 |> square |> (x -> f"Result: {x}")
-`;
-
-const { code, ast } = compile(source);
-console.log(code);
-```
-
----
-
-## 🎨 Interactive 3D Showcase & Live Studio IDE
-
-AduScript includes a full-featured in-browser Studio IDE (`demo/index.html`) featuring:
-* **Live 3D Three.js Galaxy Viewport** running `demo/scene.ads`
-* **Real-time Transpilation & Code Editor** with hot reloading
-* **Interactive AST Tree Inspector**
-* **Token Stream Inspector**
-* **Real-time Reactive HUD Controls** (Geometry selector, Wireframe toggle, Speed slider)
-
-To launch the demo server locally:
+### 2. Compile Project for Production
+Compiles all `.ads` files to standard JavaScript and automatically transforms HTML `<script src="*.ads">` to native `<script type="module" src="*.js">`:
 ```bash
-npm run demo
+node bin/aduscript.js demo/youtube_clone -o demo/youtube_dist
 ```
-Then open [http://localhost:3000/demo/index.html](http://localhost:3000/demo/index.html) in your browser.
+
+### 3. Scaffold a New Project
+```bash
+node bin/aduscript.js init my-new-app
+```
+
+### 4. Execute Directly in Node.js
+```bash
+node bin/aduscript.js script.ads --run
+```
 
 ---
 
-## 🧪 Automated Test Suite
+## 📺 Live Showcases & Demos
 
-AduScript includes a comprehensive, zero-dependency unit and integration test suite covering the Lexer, Parser, Code Generator, and Reactive Runtime:
+1. **YouTube Clone Showcase (`demo/youtube_clone/`):**
+   * Built 100% in pure AduScript (`.ads`), HTML, and CSS. Zero JavaScript application code.
+   * Features interactive theater player, live comment submission, real-time search, and category filtering.
+2. **3D Interactive Galaxy Studio IDE (`demo/index.html`):**
+   * Interactive browser playground with live Three.js 3D viewport, code editor, AST inspector, and token visualizer.
+3. **Zero-Node Quickstart Template (`quickstart.html`):**
+   * Instant demonstration of client-side AduScript running with zero external tools.
 
+---
+
+## 🎨 IDE Support (VS Code & Antigravity IDE)
+
+AduScript comes with official extension support:
+* **Vector File Icon:** Displays the official AduScript logo for `.ads` files in the explorer tree.
+* **Syntax Highlighting:** TextMate grammar for all AduScript keywords, operators, and templates.
+* **Snippets:** Quick snippets for `state`, `watch`, `effect`, `match`, `fn`, and `$adu.html`.
+
+To install the extension into your local IDE:
+```bash
+node scripts/install-vscode-extension.js
+```
+Then reload your window (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> > `Developer: Reload Window`).
+
+---
+
+## 🧪 Test Suite
+
+AduScript is thoroughly tested with 32 automated unit and integration tests:
 ```bash
 npm test
 ```
-
 ```
-▶ Suite: Lexer & Tokenizer
-  ✔ tokenizes keywords and immutable/mutable declarations
-  ✔ tokenizes pipeline and arrow operators
-  ✔ tokenizes range operator and optional chaining
-  ✔ tokenizes formatted strings with interpolation f"..."
-  ✔ tokenizes numbers in hex, binary, and floats
-  ✔ reports descriptive syntax errors with line/column pointers
-
-▶ Suite: AST Parser
-  ✔ parses immutable let and mutable mut declarations
-  ✔ parses reactive state declarations
-  ✔ parses auto-returning single-expression functions
-  ✔ parses pipeline operator chains
-  ✔ parses pattern matching construct
-  ✔ parses CDN use declarations
-  ✔ parses watch and effect statements
-
-▶ Suite: Code Generator (codegen.js)
-  ✔ compiles let to const and mut to let
-  ✔ compiles single-expression functions with return
-  ✔ compiles pipeline expressions into nested function calls
-  ✔ compiles pipeline placeholder expressions
-  ✔ compiles method pipeline shorthand
-  ✔ compiles use cdn statements to ESM imports
-  ✔ compiles state, watch, and effect statements
-  ✔ compiles pattern matching with $adu.match
-
-▶ Suite: AduScript Runtime ($adu)
-  ✔ reactive state updates subscribers when mutated
-  ✔ reactive effect automatically tracks dependencies
-  ✔ computed signals derive and update reactively
-  ✔ nested object and array proxy mutations trigger reactivity
-  ✔ evaluates pattern matching with literals, ranges, and wildcards
-  ✔ pipe and range helpers function correctly
-
 ==================================================
-Test Results: 27/27 Passed
+Test Results: 32/32 Passed
 ✔ All test suites passed successfully!
 ```
 
 ---
 
-## 📖 Language Tour & Comparison
-
-| Feature | JavaScript (ES2024) | AduScript (`.ads`) |
-| :--- | :--- | :--- |
-| **Immutability** | `const x = 10; let y = 20;` | `let x = 10; mut y = 20;` |
-| **Single-Expr Fn** | `const add = (a, b) => a + b;` | `fn add(a, b) -> a + b` |
-| **Data Pipelines** | `fn3(fn2(fn1(data, arg1), arg2))` | `data \|> fn1(arg1) \|> fn2(arg2) \|> fn3()` |
-| **Pattern Matching** | Verbose `switch` / nested `if-else` | `match val with { 1..10 => "small", { id } => id, _ => "other" }` |
-| **CDN Import** | `import * as THREE from "https://esm.sh/three";` | `use cdn:three as THREE` |
-| **Reactive State** | Requires external framework (React/Vue/Svelte) | Built-in `state count = 0`, `watch`, `effect` |
-| **String Interpolation** | `` `Count: ${count}` `` | `f"Count: {count}"` |
-
-For full formal specifications and EBNF grammar, see [SPECIFICATION.md](./SPECIFICATION.md).
-
----
-
 ## 📜 License
 
-MIT License © 2026 Google DeepMind / Antigravity Engineering.
+MIT License © 2026 AduriteTBH & AduScript Contributors.
+
