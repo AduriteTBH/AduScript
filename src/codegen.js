@@ -295,6 +295,12 @@ export class CodeGenerator {
           this.indentation--;
           this.emitLine(`}`);
         }
+      } else if (node.declaration.type === ASTNodeType.CLASS_DECLARATION) {
+        this.indentation = prevIndent;
+        this.generateClassDeclaration(node.declaration);
+      } else if (node.declaration.type === ASTNodeType.STATE_DECLARATION) {
+        this.indentation = prevIndent;
+        this.generateStateDeclaration(node.declaration);
       }
       this.indentation = prevIndent;
     } else if (node.specifiers && node.specifiers.length > 0) {

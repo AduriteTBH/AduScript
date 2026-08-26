@@ -289,12 +289,15 @@ node bin/aduscript.js script.ads --run
 
 ## 📺 Live Showcases & Demos
 
-1. **YouTube Clone Showcase (`demo/youtube_clone/`):**
+1. **3D Minecraft Voxel Game Clone (`TestAduScriptRepo`):**
+   * Built 100% in pure AduScript (`.ads`), CSS, and HTML with **zero build tools and zero local compiler files**.
+   * Features procedural 3D voxel terrain generation (rolling hills, bedrock, stone, ores, trees), AABB physics collision, pointer lock camera, block breaking & placing with procedural Web Audio sound synthesis, 9-slot inventory hotbar, and toggleable F3 debug screen.
+2. **YouTube Clone Showcase (`demo/youtube_clone/`):**
    * Built 100% in pure AduScript (`.ads`), HTML, and CSS. Zero JavaScript application code.
    * Features interactive theater player, live comment submission, real-time search, and category filtering.
-2. **3D Interactive Galaxy Studio IDE (`demo/index.html`):**
+3. **3D Interactive Galaxy Studio IDE (`demo/index.html`):**
    * Interactive browser playground with live Three.js 3D viewport, code editor, AST inspector, and token visualizer.
-3. **Zero-Node Quickstart Template (`quickstart.html`):**
+4. **Zero-Node Quickstart Template (`quickstart.html`):**
    * Instant demonstration of client-side AduScript running with zero external tools.
 
 ---

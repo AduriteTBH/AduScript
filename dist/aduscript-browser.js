@@ -2066,6 +2066,16 @@ class Parser {
       return new ExportDeclarationNode(decl, false, [], loc);
     }
 
+    if (this.check(TokenType.CLASS)) {
+      const decl = this.parseClassDeclaration();
+      return new ExportDeclarationNode(decl, false, [], loc);
+    }
+
+    if (this.check(TokenType.STATE)) {
+      const decl = this.parseStateDeclaration();
+      return new ExportDeclarationNode(decl, false, [], loc);
+    }
+
     // Named export list: export { a, b as c }
     if (this.check(TokenType.LBRACE)) {
       const specifiers = [];
@@ -2738,7 +2748,7 @@ class Parser {
     if (token.type === TokenType.DOT || token.type === TokenType.OPTIONAL_CHAIN) {
       const isOptional = token.type === TokenType.OPTIONAL_CHAIN;
       this.advance();
-      const prop = this.parseIdentifier();
+      const prop = this.parsePropertyName();
       return new MemberExpressionNode(left, prop, false, isOptional, loc);
     }
 
@@ -2819,6 +2829,15 @@ class Parser {
       } while (this.match(TokenType.COMMA) && !this.check(TokenType.RPAREN));
     }
     return args;
+  }
+
+  parsePropertyName() {
+    const token = this.currentToken();
+    if (token.type === TokenType.IDENTIFIER || (typeof KEYWORDS !== 'undefined' && Object.values(KEYWORDS).includes(token.type))) {
+      this.advance();
+      return new IdentifierNode(token.value || token.raw, this.getLoc());
+    }
+    return this.parseIdentifier();
   }
 
   parseIdentifier() {
@@ -3126,6 +3145,12 @@ class CodeGenerator {
           this.indentation--;
           this.emitLine(`}`);
         }
+      } else if (node.declaration.type === ASTNodeType.CLASS_DECLARATION) {
+        this.indentation = prevIndent;
+        this.generateClassDeclaration(node.declaration);
+      } else if (node.declaration.type === ASTNodeType.STATE_DECLARATION) {
+        this.indentation = prevIndent;
+        this.generateStateDeclaration(node.declaration);
       }
       this.indentation = prevIndent;
     } else if (node.specifiers && node.specifiers.length > 0) {

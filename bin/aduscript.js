@@ -164,6 +164,9 @@ function compileDirectory(srcDir, outDir) {
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
 
   for (const entry of entries) {
+    if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'dist' || path.resolve(srcDir, entry.name) === path.resolve(outDir)) {
+      continue;
+    }
     const srcPath = path.join(srcDir, entry.name);
     const destPath = path.join(outDir, entry.name);
 
