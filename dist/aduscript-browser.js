@@ -1050,7 +1050,6 @@ const $adu = {
   logo
 };
 
-default $adu;
 
 
   // --- LEXER ---
@@ -1058,7 +1057,6 @@ default $adu;
  * AduScript Compiler - Lexical Analyzer / Tokenizer
  * Deliverable A: Scans .ads source code and produces an array of Token instances.
  */
-
 
 
 class LexerError extends Error {
@@ -1643,7 +1641,6 @@ class Lexer {
 
 
 
-
 class ParserError extends Error {
   constructor(message, line, column, snippet = '') {
     const header = `[AduScript Parse Error] ${message} (at line ${line}, column ${column})`;
@@ -1966,7 +1963,7 @@ class Parser {
     let defaultImport = null;
     const specifiers = [];
 
-    // Bare import: 
+    // Bare import: import "./styles.css"
     if (this.check(TokenType.STRING)) {
       const source = this.advance().value;
       this.consumeSemicolon();
@@ -1976,7 +1973,7 @@ class Parser {
     if (this.check(TokenType.IDENTIFIER)) {
       defaultImport = this.parseIdentifier().name;
       if (this.match(TokenType.COMMA)) {
-        // 
+        // import React, { useState } from "react"
         if (this.check(TokenType.LBRACE)) {
           this.parseImportSpecifiers(specifiers);
         }
@@ -1985,7 +1982,7 @@ class Parser {
       this.parseImportSpecifiers(specifiers);
     }
 
-    this.consume(TokenType.FROM, "Expected 'from' after 
+    this.consume(TokenType.FROM, "Expected 'from' after import clause");
     const sourceToken = this.consume(TokenType.STRING, "Expected module path string");
     const source = sourceToken.value;
 
@@ -2004,7 +2001,7 @@ class Parser {
       specifiers.push({ imported, local });
       if (!this.match(TokenType.COMMA)) break;
     }
-    this.consume(TokenType.RBRACE, "Expected '}' after 
+    this.consume(TokenType.RBRACE, "Expected '}' after import specifiers");
   }
 
   parseExportDeclaration() {
@@ -2029,7 +2026,7 @@ class Parser {
       return new ExportDeclarationNode(decl, false, [], loc);
     }
 
-    // Named list: { a, b as c }
+    // Named export list: export { a, b as c }
     if (this.check(TokenType.LBRACE)) {
       const specifiers = [];
       this.consume(TokenType.LBRACE);
@@ -2042,12 +2039,12 @@ class Parser {
         specifiers.push({ local, exported });
         if (!this.match(TokenType.COMMA)) break;
       }
-      this.consume(TokenType.RBRACE, "Expected '}' after specifiers");
+      this.consume(TokenType.RBRACE, "Expected '}' after export specifiers");
       this.consumeSemicolon();
       return new ExportDeclarationNode(null, false, specifiers, loc);
     }
 
-    this.error("Invalid declaration", this.currentToken());
+    this.error("Invalid export declaration", this.currentToken());
   }
 
   parseIfStatement() {
@@ -2795,9 +2792,8 @@ class Parser {
   // --- CODE GENERATOR ---
   /**
  * AduScript Compiler - Code Generator & Source Map Generator
- * Deliverable C: Emits clean, readable ECMAScript 2024+ from the AduScript AST.
+ * Deliverable C: Emits clean, readable ECMAScript 2024+ from the AduScript 
  */
-
 
 
 
@@ -2851,7 +2847,7 @@ class CodeGenerator {
       this.emitLine(this.getInlinedRuntimeCode());
       this.emitLine();
     } else if (this.options.moduleType === 'esm' && this.needsAduRuntime()) {
-      this.emitLine(`
+      this.emitLine(`import { $adu } from "${this.options.runtimePath}";`);
       this.emitLine();
     }
 
@@ -3018,15 +3014,15 @@ class CodeGenerator {
   generateUseDeclaration(node) {
     const url = resolveCDN(node.source);
     if (node.alias) {
-      // use cdn:three as THREE -> 
-      this.emitLine(`
+      // use cdn:three as THREE -> import * as THREE from "..."
+      this.emitLine(`import * as ${node.alias} from "${url}";`);
     } else if (node.specifiers && node.specifiers.length > 0) {
-      // use cdn:three { Scene, Camera } -> 
+      // use cdn:three { Scene, Camera } -> import { Scene, Camera } from "..."
       const specs = node.specifiers.map(s => s.local !== s.imported ? `${s.imported} as ${s.local}` : s.imported).join(', ');
-      this.emitLine(`
+      this.emitLine(`import { ${specs} } from "${url}";`);
     } else {
       // Bare use "https://..."
-      this.emitLine(`
+      this.emitLine(`import "${url}";`);
     }
   }
 
@@ -3050,17 +3046,17 @@ class CodeGenerator {
       parts.push(`{ ${specs} }`);
     }
     if (parts.length > 0) {
-      this.emitLine(`
+      this.emitLine(`import ${parts.join(', ')} from "${source}";`);
     } else {
-      this.emitLine(`
+      this.emitLine(`import "${source}";`);
     }
   }
 
   generateExportDeclaration(node) {
     if (node.isDefault) {
-      this.emitLine(`default ${this.generateExpression(node.declaration)};`);
+      this.emitLine(`export default ${this.generateExpression(node.declaration)};`);
     } else if (node.declaration) {
-      this.emit(`${this.indent()}`);
+      this.emit(`${this.indent()}export `);
       // Strip indentation for inline declaration
       const prevIndent = this.indentation;
       this.indentation = 0;
@@ -3094,7 +3090,7 @@ class CodeGenerator {
       this.indentation = prevIndent;
     } else if (node.specifiers && node.specifiers.length > 0) {
       const specs = node.specifiers.map(s => s.local !== s.exported ? `${s.local} as ${s.exported}` : s.local).join(', ');
-      this.emitLine(`{ ${specs} };`);
+      this.emitLine(`export { ${specs} };`);
     }
   }
 
@@ -3630,6 +3626,49 @@ class CodeGenerator {
     return { code, ast, tokens, map, version: '1.0.0' };
   }
 
+  function fetchText(url) {
+    return new Promise((resolve, reject) => {
+      if (typeof fetch === 'function') {
+        fetch(url)
+          .then(res => {
+            if (res.ok) return res.text();
+            throw new Error('HTTP ' + res.status);
+          })
+          .then(resolve)
+          .catch(fetchErr => {
+            try {
+              const xhr = new XMLHttpRequest();
+              xhr.open('GET', url, true);
+              xhr.onload = () => {
+                if (xhr.status === 200 || xhr.status === 0) {
+                  resolve(xhr.responseText);
+                } else {
+                  reject(fetchErr);
+                }
+              };
+              xhr.onerror = () => reject(fetchErr);
+              xhr.send();
+            } catch (_) {
+              reject(fetchErr);
+            }
+          });
+      } else {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 0) resolve(xhr.responseText);
+            else reject(new Error('HTTP ' + xhr.status));
+          };
+          xhr.onerror = () => reject(new Error('Network Error'));
+          xhr.send();
+        } catch (e) {
+          reject(e);
+        }
+      }
+    });
+  }
+
   // --- RECURSIVE SUBFOLDER MODULE RESOLVER ---
   const moduleCache = new Map();
 
@@ -3652,25 +3691,23 @@ class CodeGenerator {
       if (importPath.endsWith('.css')) {
         // Fetch & inject CSS into DOM
         try {
-          const cssRes = await fetch(resolvedUrl);
-          if (cssRes.ok) {
-            const cssText = await cssRes.text();
+          const cssText = await fetchText(resolvedUrl);
+          if (cssText) {
             $adu.css([cssText]);
           }
         } catch (_) {}
-        code = code.replace(fullImport, `// Injected CSS: ${importPath}`);
+        code = code.replace(fullImport, '// Injected CSS: ' + importPath);
       } else if (importPath.endsWith('.ads') || !importPath.includes('.')) {
         // Fetch, compile, and link .ads dependency across subfolders
         const targetUrl = importPath.endsWith('.ads') ? resolvedUrl : resolvedUrl + '.ads';
         let depBlobUrl = moduleCache.get(targetUrl);
         if (!depBlobUrl) {
-          const depRes = await fetch(targetUrl);
-          if (!depRes.ok) throw new Error(`Failed to load AduScript dependency: ${importPath} from ${base}`);
-          const depSource = await depRes.text();
+          const depSource = await fetchText(targetUrl);
+          if (!depSource) throw new Error('Failed to load AduScript dependency: ' + importPath + ' from ' + base);
           depBlobUrl = await resolveAndCompileModule(depSource, targetUrl);
           moduleCache.set(targetUrl, depBlobUrl);
         }
-        code = code.replace(fullImport, `import ${clause}"${depBlobUrl}";`);
+        code = code.replace(fullImport, 'import ' + clause + '"' + depBlobUrl + '";');
       }
     }
 
@@ -3687,9 +3724,7 @@ class CodeGenerator {
 
   async function runFile(url) {
     const absUrl = typeof location !== 'undefined' ? new URL(url, location.href).href : url;
-    const res = await fetch(absUrl);
-    if (!res.ok) throw new Error(`Failed to load AduScript file: ${url} (HTTP ${res.status})`);
-    const source = await res.text();
+    const source = await fetchText(absUrl);
     return run(source, { sourceFileName: absUrl, baseUrl: absUrl });
   }
 

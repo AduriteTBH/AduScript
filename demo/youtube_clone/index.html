@@ -5,11 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YouTube - AduScript Next-Gen Edition</title>
   <meta name="description" content="A complete YouTube clone built 100% in AduScript (.ads), CSS, and HTML with zero JavaScript application code.">
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- External Stylesheets (Clean separation of CSS files) -->
+  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="styles/animations.css">
+  <link rel="stylesheet" href="styles/layout.css">
   
-  <!-- Standalone AduScript Engine & Dynamic In-Browser Module Linker via Global jsDelivr CDN -->
+  <!-- Standalone AduScript Engine & Dynamic Module Linker via Global jsDelivr CDN -->
   <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
 </head>
 <body>
@@ -20,10 +27,6 @@
       <div style="font-size:16px;font-weight:700;letter-spacing:0.5px;">Loading AduScript YouTube App...</div>
     </div>
   </div>
-
-  <style>
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
 
   <!-- Load Main AduScript Application Root -->
   <script type="text/aduscript" src="app.ads"></script>

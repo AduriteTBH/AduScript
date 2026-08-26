@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube - AduScript Standalone Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Standalone AduScript Engine via Global jsDelivr CDN -->
+  </head>
+<body>
+  <div id="app-root">
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f0f0f;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;flex-direction:column;gap:16px;">
+      <div style="width:48px;height:48px;border:3px solid rgba(255,0,51,0.3);border-top-color:#ff0033;border-radius:50%;animation:spin 1s linear infinite;"></div>
+      <div style="font-size:16px;font-weight:700;letter-spacing:0.5px;">Loading AduScript YouTube App...</div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <!-- Complete Standalone AduScript Application (Runs seamlessly over file:/// or http://) -->
+  <script type="module">
+// --- AduScript Inlined Runtime ($adu) ---
+const $adu = (() => {
+  let activeEffect = null;
+  class Signal {
+    constructor(init) { this._subs = new Set(); this._val = this._wrap(init); }
+    _wrap(v) {
+      if (v !== null && typeof v === 'object' && !v.__isProxy) {
+        const s = this;
+        return new Proxy(v, {
+          get(t, p, r) { if (p === '__isProxy') return true; s._track(); const res = Reflect.get(t, p, r); return (typeof res === 'object' && res !== null) ? s._wrap(res) : res; },
+          set(t, p, nv, r) { const old = Reflect.get(t, p, r); const ok = Reflect.set(t, p, nv, r); if (old !== nv) s._notify(); return ok; }
+        });
+      }
+      return v;
+    }
+    _track() { if (activeEffect) this._subs.add(activeEffect); }
+    _notify() { Array.from(this._subs).forEach(fn => { try { fn(); } catch (e) { console.error('[AduScript Reactive Error]', e); } }); }
+    get value() { this._track(); return this._val; }
+    set value(nv) { if (this._val !== nv) { this._val = this._wrap(nv); this._notify(); } }
+    toString() { return String(this.value); }
+    valueOf() { return this.value; }
+  }
+  return {
+    state: (v) => new Signal(v),
+    watch: (s, cb) => { if (s instanceof Signal) { let old = s.value; const w = () => { const cur = s.value; if (cur !== old) { const p = old; old = cur; cb(cur, p); } }; s._subs.add(w); return () => s._subs.delete(w); } },
+    effect: (fn) => { const r = () => { const prev = activeEffect; activeEffect = r; try { fn(); } finally { activeEffect = prev; } }; r(); return r; },
+    match: (val, arms) => { for (const a of arms) { if (a.test(val)) { if (!a.guard || a.guard(val)) return a.body(val); } } throw new Error('[AduScript Pattern Match Error] No match for ' + JSON.stringify(val)); },
+    matchLiteral: (exp) => (v) => v === exp,
+    matchRange: (s, e) => (v) => typeof v === 'number' && v >= s && v <= e,
+    matchWildcard: () => () => true,
+    matchObject: (sch) => (v) => { if (v === null || typeof v !== 'object') return false; for (const [k, exp] of Object.entries(sch)) { if (!(k in v)) return false; if (typeof exp === 'function' ? !exp(v[k]) : v[k] !== exp) return false; } return true; },
+    matchArray: (elems, hasRest) => (v) => { if (!Array.isArray(v)) return false; if (!hasRest && v.length !== elems.length) return false; if (hasRest && v.length < elems.length) return false; for (let i = 0; i < elems.length; i++) { if (typeof elems[i] === 'function' ? !elems[i](v[i]) : v[i] !== elems[i]) return false; } return true; },
+    pipe: (init, ...fns) => fns.reduce((acc, f) => typeof f === 'function' ? f(acc) : f, init),
+    range: (s, e) => { const res = []; if (s <= e) { for (let i = s; i <= e; i++) res.push(i); } else { for (let i = s; i >= e; i--) res.push(i); } return res; }
+  };
+})();
+
+$adu.css`
+      :root {
+        --yt-spec-base-background: #0f0f0f;
+        --yt-spec-raised-background: #212121;
+        --yt-spec-menu-background: #282828;
+        --yt-spec-text-primary: #f1f1f1;
+        --yt-spec-text-secondary: #aaaaaa;
+        --yt-spec-brand-red: #ff0033;
+        --yt-spec-hover: rgba(255, 255, 255, 0.1);
+        --yt-spec-border: rgba(255, 255, 255, 0.12);
+        --navbar-height: 56px;
+        --sidebar-width: 240px;
+        --sidebar-collapsed-width: 72px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background-color: var(--yt-spec-base-background);
+        color: var(--yt-spec-text-primary);
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        overflow-x: hidden;
+      }
+      .app-root { display: flex; flex-direction: column; min-height: 100vh; }
+      .yt-navbar {
+        position: fixed; top: 0; left: 0; right: 0; height: var(--navbar-height);
+        background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(16px);
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 16px; z-index: 1000; border-bottom: 1px solid var(--yt-spec-border);
+      }
+      .yt-nav-left { display: flex; align-items: center; gap: 16px; }
+      .yt-logo { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+      .yt-logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.8px; color: #fff; }
+      .yt-logo-sub { font-size: 10px; font-weight: 800; background: #C0004D; color: #fff; padding: 1px 4px; border-radius: 4px; margin-left: 2px; }
+      .yt-nav-center { display: flex; align-items: center; gap: 12px; flex: 0 1 720px; margin: 0 32px; }
+      .yt-search-container { display: flex; flex: 1; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; overflow: hidden; background: #121212; }
+      .yt-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 0 16px; font-size: 15px; color: #fff; height: 40px; }
+      .yt-search-btn { background: #222; border: none; border-left: 1px solid rgba(255,255,255,0.2); width: 64px; height: 40px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+      .yt-icon-btn { background: transparent; border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+      .yt-icon-btn:hover { background: rgba(255,255,255,0.1); }
+      .yt-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #C0004D, #e11d48); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; cursor: pointer; }
+      .yt-main-layout { display: flex; margin-top: var(--navbar-height); }
+      .yt-sidebar { width: var(--sidebar-width); height: calc(100vh - var(--navbar-height)); position: fixed; top: var(--navbar-height); left: 0; background: var(--yt-spec-base-background); overflow-y: auto; padding: 12px; border-right: 1px solid var(--yt-spec-border); }
+      .yt-sidebar.collapsed { width: var(--sidebar-collapsed-width); padding: 8px 4px; }
+      .yt-sidebar-item { display: flex; align-items: center; gap: 20px; padding: 10px 14px; border-radius: 10px; cursor: pointer; color: var(--yt-spec-text-primary); margin-bottom: 2px; font-size: 14px; font-weight: 500; }
+      .yt-sidebar-item:hover { background: rgba(255,255,255,0.08); }
+      .yt-sidebar-item.active { background: rgba(255,255,255,0.15); font-weight: 700; }
+      .yt-sidebar.collapsed .yt-sidebar-item { flex-direction: column; gap: 4px; padding: 12px 0; justify-content: center; font-size: 10px; text-align: center; }
+      .yt-content-viewport { margin-left: var(--sidebar-width); flex: 1; padding: 20px 24px; min-height: calc(100vh - var(--navbar-height)); transition: margin-left 0.2s ease; }
+      .yt-sidebar.collapsed + .yt-content-viewport, .yt-content-viewport.sidebar-collapsed { margin-left: var(--sidebar-collapsed-width); }
+      .category-chips { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 16px; margin-bottom: 16px; scrollbar-width: none; }
+      .chip { background: #272727; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid transparent; transition: background 0.15s; }
+      .chip:hover { background: #3f3f3f; }
+      .chip.active { background: #fff; color: #0f0f0f; font-weight: 700; }
+      .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px 16px; }
+      .video-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; border-radius: 12px; overflow: hidden; }
+      .thumbnail-container { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #1f1f1f; }
+      .thumbnail-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.25s ease; }
+      .video-card:hover .thumbnail-img { transform: scale(1.04); }
+      .timestamp { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; }
+      .video-details { display: flex; gap: 12px; padding: 0 4px; }
+      .channel-avatar { width: 36px; height: 36px; border-radius: 50%; background: #333; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+      .video-meta { flex: 1; }
+      .video-title { font-size: 14.5px; font-weight: 600; line-height: 1.35; margin-bottom: 4px; color: #f1f1f1; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .channel-name { font-size: 12.5px; color: #aaa; margin-bottom: 2px; }
+      .video-stats { font-size: 12px; color: #aaa; }
+      .watch-container { display: flex; gap: 24px; padding: 20px 24px; margin-left: var(--sidebar-width); flex: 1; }
+      .watch-main { flex: 1; max-width: 900px; }
+      .watch-sidebar { width: 380px; flex-shrink: 0; }
+      .player-viewport { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+      .player-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: radial-gradient(circle at center, #2a0b17 0%, #080808 100%); }
+      .btn-subscribe { background: #fff; color: #000; font-weight: 700; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; }
+      .btn-subscribe.subscribed { background: #333; color: #fff; }
+      .comment-box { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+      .comment-input-area { display: flex; gap: 12px; }
+      .comment-input { flex: 1; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 8px 0; color: #fff; outline: none; font-size: 14px; }
+      .comment-input:focus { border-bottom-color: #38bdf8; }
+    `;
+const VIDEO_DATASET = [{ id: "v1", title: "🪐 Building a 3D Galaxy Simulation from Scratch in AduScript", channel: "AduScript Devs", views: "185K", timestamp: "14:28", timeAgo: "2 days ago", category: "3D WebGL", thumbnail: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=640&q=80", description: "Learn how to use AduScript with Three.js via zero-boilerplate CDN imports and fine-grained reactive state signals!" }, { id: "v2", title: "⚡ How AduScript Replaces React, Vue, and Webpack in 2026", channel: "Frontend Mastery", views: "340K", timestamp: "18:05", timeAgo: "5 days ago", category: "AduScript", thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=640&q=80", description: "A comprehensive breakdown of AduScript pipeline operators, pattern matching, and built-in reactivity." }, { id: "v3", title: "🎮 Building an Interactive Canvas Game with Pipeline Operators", channel: "GameDev Academy", views: "92K", timestamp: "22:40", timeAgo: "1 week ago", category: "Gaming", thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=640&q=80", description: "Watch how clean AduScript functional pipelines make game loop state updates and collisions." }, { id: "v4", title: "🤖 Modern AI Agent Toolchains: The Complete Guide", channel: "Tech Tomorrow", views: "520K", timestamp: "31:12", timeAgo: "3 days ago", category: "AI", thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=640&q=80", description: "Deep dive into next-generation intelligent coding agents and reactive compilers." }];
+const activeNav = $adu.state("home");
+const isSidebarCollapsed = $adu.state(false);
+const searchQuery = $adu.state("");
+const activeCategory = $adu.state("All");
+const selectedVideo = $adu.state(null);
+const isPlaying = $adu.state(true);
+const isLiked = $adu.state(false);
+const isSubscribed = $adu.state(false);
+const activeComments = $adu.state([{ id: "c1", author: "Sarah Connor", avatar: "S", time: "1 day ago", text: "AduScript is shockingly fast! The zero-boilerplate CDN feature is amazing." }, { id: "c2", author: "Alex Rivers", avatar: "A", time: "2 days ago", text: "The pipeline operator |> makes data filtering look so much cleaner than standard JS." }]);
+const CATEGORIES = ["All", "AduScript", "3D WebGL", "Gaming", "AI"];
+function handleSelectVideo(video) {
+  selectedVideo.value = video;
+  isPlaying.value = true;
+  isLiked.value = false;
+  isSubscribed.value = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function handleBackToHome() {
+  selectedVideo.value = null;
+}
+function handleToggleSidebar() {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+}
+function handleAddComment(e) {
+  if (((e.key == "Enter") && e.target.value.trim())) {
+    const newC = { id: `c_${Date.now()}`, author: "AduScript User", avatar: "A", time: "Just now", text: e.target.value.trim() };
+    activeComments.value = [newC, ...activeComments.value];
+    e.target.value = "";
+  }
+}
+function renderFeed() {
+  const filtered = VIDEO_DATASET.filter(((v) => {
+  const matchesCat = ((activeCategory.value == "All") || (v.category == activeCategory.value));
+  const matchesSearch = ((searchQuery.value.trim().length == 0) || v.title.toLowerCase().includes(searchQuery.value.toLowerCase()));
+  return (matchesCat && matchesSearch);
+}));
+  const chips = CATEGORIES.map(((cat) => $adu.html`
+        <button class="chip ${((activeCategory.value == cat) ? "active" : "")}" onclick=${(() => activeCategory.value = cat)}>
+          ${cat}
+        </button>
+      `));
+  const cards = filtered.map(((v) => $adu.html`
+        <div class="video-card" onclick=${(() => handleSelectVideo(v))}>
+          <div class="thumbnail-container">
+            <img class="thumbnail-img" src="${v.thumbnail}" alt="${v.title}" />
+            <div class="timestamp">${v.timestamp}</div>
+          </div>
+          <div class="video-details">
+            <div class="channel-avatar">${v.channel.charAt(0)}</div>
+            <div class="video-meta">
+              <h3 class="video-title">${v.title}</h3>
+              <div class="channel-name">${v.channel}</div>
+              <div class="video-stats">${v.views} views • ${v.timeAgo}</div>
+            </div>
+          </div>
+        </div>
+      `));
+  return $adu.html`
+        <div class="yt-content-viewport ${(isSidebarCollapsed.value ? "sidebar-collapsed" : "")}">
+          <div class="category-chips">${chips}</div>
+          <div class="video-grid">${cards}</div>
+        </div>
+      `;
+}
+function renderWatch(video) {
+  const commentsList = activeComments.value.map(((c) => $adu.html`
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <div class="channel-avatar" style="background:#C0004D;">${c.avatar}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">${c.author} <span style="font-size:11px;color:#aaa;font-weight:400;">${c.time}</span></div>
+            <div style="font-size:14px;color:#ddd;margin-top:4px;">${c.text}</div>
+          </div>
+        </div>
+      `));
+  return $adu.html`
+        <div class="watch-container ${(isSidebarCollapsed.value ? "sidebar-collapsed" : "")}">
+          <div class="watch-main">
+            <div class="player-viewport">
+              <div class="player-placeholder">
+                ${$adu.logo(64)}
+                <h2 style="font-size:18px;color:#fff;">${video.title}</h2>
+                <div style="font-size:13px;color:#38bdf8;">⚡ Playing in pure AduScript (.ads) runtime</div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="channel-avatar" style="width:44px;height:44px;font-size:16px;">${video.channel.charAt(0)}</div>
+                <div>
+                  <div style="font-weight:700;font-size:16px;">${video.channel}</div>
+                  <div style="font-size:12px;color:#aaa;">1.2M subscribers</div>
+                </div>
+                <button class="btn-subscribe ${(isSubscribed.value ? "subscribed" : "")}" onclick=${(() => isSubscribed.value = !isSubscribed.value)}>
+                  ${(isSubscribed.value ? "✓ Subscribed" : "Subscribe")}
+                </button>
+              </div>
+
+              <div style="display:flex;gap:8px;">
+                <button class="yt-search-container" style="padding:8px 16px;border-radius:20px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:6px;" onclick=${(() => isLiked.value = !isLiked.value)}>
+                  ${(isLiked.value ? "❤️ Liked" : "🤍 Like")}
+                </button>
+                <button class="yt-search-container" style="padding:8px 16px;border-radius:20px;cursor:pointer;color:#fff;" onclick=${handleBackToHome}>
+                  ✕ Back to Feed
+                </button>
+              </div>
+            </div>
+
+            <div style="background:#222;border-radius:12px;padding:16px;margin-top:16px;font-size:14px;color:#ddd;line-height:1.5;">
+              <div style="font-weight:700;color:#fff;margin-bottom:6px;">${video.views} views • Uploaded ${video.timeAgo}</div>
+              ${video.description}
+            </div>
+
+            <div class="comment-box">
+              <h3 style="font-size:16px;">${activeComments.value.length} Comments</h3>
+              <div class="comment-input-area">
+                <div class="channel-avatar" style="background:#C0004D;">A</div>
+                <input class="comment-input" placeholder="Add a public comment (Press Enter to post)..." onkeydown=${handleAddComment} />
+              </div>
+              <div style="margin-top:16px;">${commentsList}</div>
+            </div>
+          </div>
+        </div>
+      `;
+}
+function App() {
+  const content = $adu.match(selectedVideo.value, [
+  { test: $adu.matchLiteral(null), guard: null, body: (val) => (renderFeed()) },
+  { test: $adu.matchWildcard(), guard: null, body: (val) => (renderWatch(selectedVideo.value)) }
+]);
+  return $adu.html`
+        <div class="app-root">
+          <header class="yt-navbar">
+            <div class="yt-nav-left">
+              <button class="yt-icon-btn" onclick=${handleToggleSidebar} title="Toggle Sidebar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              </button>
+              <div class="yt-logo" onclick=${handleBackToHome}>
+                ${$adu.logo(28)}
+                <span class="yt-logo-text">AduTube</span>
+                <span class="yt-logo-sub">ADS</span>
+              </div>
+            </div>
+
+            <div class="yt-nav-center">
+              <div class="yt-search-container">
+                <input class="yt-search-input" placeholder="Search videos in AduScript..." value="${searchQuery.value}" oninput=${((e) => {
+  searchQuery.value = e.target.value;
+})} />
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="yt-avatar">A</div>
+            </div>
+          </header>
+
+          <div class="yt-main-layout">
+            <aside class="yt-sidebar ${(isSidebarCollapsed.value ? "collapsed" : "")}">
+              <div class="yt-sidebar-item active" onclick=${handleBackToHome}>🏠 <span>Home</span></div>
+              <div class="yt-sidebar-item" onclick=${handleBackToHome}>🔥 <span>Trending</span></div>
+              <div class="yt-sidebar-item" onclick=${handleBackToHome}>📚 <span>Library</span></div>
+            </aside>
+            ${content}
+          </div>
+        </div>
+      `;
+}
+$adu.mount("#app-root", App);
+console.log("✔ AduScript YouTube Standalone Edition Mounted!");
+
+</script>
+</body>
+</html>

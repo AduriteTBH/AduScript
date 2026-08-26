@@ -6,27 +6,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const tokensCode = fs.readFileSync('src/tokens.js', 'utf-8')
-  .replace(/export /g, '');
+function sanitizeModule(code) {
+  return code
+    .replace(/^import\s+[\s\S]*?from\s+['"][^'"]+['"];?\s*$/gm, '')
+    .replace(/^import\s+['"][^'"]+['"];?\s*$/gm, '')
+    .replace(/^export\s+default\s+[^;]+;?\s*$/gm, '')
+    .replace(/^export\s+/gm, '')
+    .replace(/AST\./g, '');
+}
 
-const lexerCode = fs.readFileSync('src/lexer.js', 'utf-8')
-  .replace(/import .*/g, '')
-  .replace(/export /g, '');
-
-const astCode = fs.readFileSync('src/ast.js', 'utf-8')
-  .replace(/export /g, '');
-
-const parserCode = fs.readFileSync('src/parser.js', 'utf-8')
-  .replace(/import .*/g, '')
-  .replace(/export /g, '')
-  .replace(/AST\./g, '');
-
-const runtimeCode = fs.readFileSync('src/runtime.js', 'utf-8')
-  .replace(/export /g, '');
-
-const codegenCode = fs.readFileSync('src/codegen.js', 'utf-8')
-  .replace(/import .*/g, '')
-  .replace(/export /g, '');
+const tokensCode = sanitizeModule(fs.readFileSync('src/tokens.js', 'utf-8'));
+const lexerCode = sanitizeModule(fs.readFileSync('src/lexer.js', 'utf-8'));
+const astCode = sanitizeModule(fs.readFileSync('src/ast.js', 'utf-8'));
+const parserCode = sanitizeModule(fs.readFileSync('src/parser.js', 'utf-8'));
+const runtimeCode = sanitizeModule(fs.readFileSync('src/runtime.js', 'utf-8'));
+const codegenCode = sanitizeModule(fs.readFileSync('src/codegen.js', 'utf-8'));
 
 const bundle = `/**
  * AduScript In-Browser Compiler & Client Runtime (Standalone Bundle)
@@ -73,6 +67,49 @@ const bundle = `/**
     return { code, ast, tokens, map, version: '1.0.0' };
   }
 
+  function fetchText(url) {
+    return new Promise((resolve, reject) => {
+      if (typeof fetch === 'function') {
+        fetch(url)
+          .then(res => {
+            if (res.ok) return res.text();
+            throw new Error('HTTP ' + res.status);
+          })
+          .then(resolve)
+          .catch(fetchErr => {
+            try {
+              const xhr = new XMLHttpRequest();
+              xhr.open('GET', url, true);
+              xhr.onload = () => {
+                if (xhr.status === 200 || xhr.status === 0) {
+                  resolve(xhr.responseText);
+                } else {
+                  reject(fetchErr);
+                }
+              };
+              xhr.onerror = () => reject(fetchErr);
+              xhr.send();
+            } catch (_) {
+              reject(fetchErr);
+            }
+          });
+      } else {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.onload = () => {
+            if (xhr.status === 200 || xhr.status === 0) resolve(xhr.responseText);
+            else reject(new Error('HTTP ' + xhr.status));
+          };
+          xhr.onerror = () => reject(new Error('Network Error'));
+          xhr.send();
+        } catch (e) {
+          reject(e);
+        }
+      }
+    });
+  }
+
   // --- RECURSIVE SUBFOLDER MODULE RESOLVER ---
   const moduleCache = new Map();
 
@@ -95,25 +132,23 @@ const bundle = `/**
       if (importPath.endsWith('.css')) {
         // Fetch & inject CSS into DOM
         try {
-          const cssRes = await fetch(resolvedUrl);
-          if (cssRes.ok) {
-            const cssText = await cssRes.text();
+          const cssText = await fetchText(resolvedUrl);
+          if (cssText) {
             $adu.css([cssText]);
           }
         } catch (_) {}
-        code = code.replace(fullImport, \`// Injected CSS: \${importPath}\`);
+        code = code.replace(fullImport, '// Injected CSS: ' + importPath);
       } else if (importPath.endsWith('.ads') || !importPath.includes('.')) {
         // Fetch, compile, and link .ads dependency across subfolders
         const targetUrl = importPath.endsWith('.ads') ? resolvedUrl : resolvedUrl + '.ads';
         let depBlobUrl = moduleCache.get(targetUrl);
         if (!depBlobUrl) {
-          const depRes = await fetch(targetUrl);
-          if (!depRes.ok) throw new Error(\`Failed to load AduScript dependency: \${importPath} from \${base}\`);
-          const depSource = await depRes.text();
+          const depSource = await fetchText(targetUrl);
+          if (!depSource) throw new Error('Failed to load AduScript dependency: ' + importPath + ' from ' + base);
           depBlobUrl = await resolveAndCompileModule(depSource, targetUrl);
           moduleCache.set(targetUrl, depBlobUrl);
         }
-        code = code.replace(fullImport, \`import \${clause}"\${depBlobUrl}";\`);
+        code = code.replace(fullImport, 'import ' + clause + '"' + depBlobUrl + '";');
       }
     }
 
@@ -130,9 +165,7 @@ const bundle = `/**
 
   async function runFile(url) {
     const absUrl = typeof location !== 'undefined' ? new URL(url, location.href).href : url;
-    const res = await fetch(absUrl);
-    if (!res.ok) throw new Error(\`Failed to load AduScript file: \${url} (HTTP \${res.status})\`);
-    const source = await res.text();
+    const source = await fetchText(absUrl);
     return run(source, { sourceFileName: absUrl, baseUrl: absUrl });
   }
 
