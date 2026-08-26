@@ -1,13 +1,56 @@
 # AduScript Technical Specification and System Instructions for AI Models
 
-> **CRITICAL DIRECTIVE FOR ALL AI MODELS (ChatGPT, Claude, Cursor, Copilot, Gemini):**
-> You are generating source code for **AduScript**, a standalone programming language with the `.ads` file extension.
-> **YOU MUST WRITE PURE ADUSCRIPT CODE ONLY.**
-> **DO NOT WRITE JAVASCRIPT, TYPESCRIPT, KOTLIN, RUST, OR PYTHON.**
+> **CRITICAL DIRECTIVES FOR ALL AI MODELS (ChatGPT, Claude, Cursor, Copilot, Gemini):**
+> 1. **AduScript is a standalone PROGRAMMING LANGUAGE (like Rust, Python, or Lua), NOT a JavaScript class, library, or framework.**
+> 2. **Whenever you generate an HTML file, you MUST load the language engine from CDN in `<head>`:**
+>    `<script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>`
+> 3. **Your AduScript code MUST be written inside `<script type="text/aduscript">` (or linked with `<script type="text/aduscript" src="app.ads"></script>`). NEVER use standard `<script>` or `<script type="module">`.**
+> 4. **Inside `<script type="text/aduscript">`, write pure AduScript grammar (`let`, `mut`, `state`, `fn`, `->`, `f"..."`, `use cdn:`). NEVER output JavaScript, TypeScript, or Kotlin.**
 
 ---
 
-## 1. Complete AduScript Official Keyword Directory
+## 1. Mandatory HTML Boilerplate & CDN Language Loading
+
+Every HTML file using AduScript MUST follow this exact structure:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My AduScript Application</title>
+  
+  <!-- MANDATORY STEP 1: Load the AduScript Language Engine from CDN -->
+  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- MANDATORY STEP 2: Write Pure AduScript Code with type="text/aduscript" -->
+  <script type="text/aduscript">
+    state count = 0
+
+    fn App() {
+      return $adu.html`
+        <div style="font-family: sans-serif; padding: 24px;">
+          ${$adu.logo(40)}
+          <h1>Welcome to AduScript</h1>
+          <p>Clicks: ${count.value}</p>
+          <button onclick=${() -> count.value += 1}>+ Increment</button>
+        </div>
+      `
+    }
+
+    $adu.mount("#root", App)
+  </script>
+</body>
+</html>
+```
+
+---
+
+## 2. Complete AduScript Official Keyword Directory
 
 AduScript has a defined set of reserved keywords. AI models must only use the official keywords listed below.
 
@@ -51,231 +94,17 @@ AduScript has a defined set of reserved keywords. AI models must only use the of
 
 ---
 
-## 2. Zero-Compiler Architecture and Single-File HTML Coding
-
-AduScript does not require installing any compiler, Node.js packages, bundlers, or build tools. It runs natively in every modern web browser with zero configuration.
-
-### Example: Single-File HTML Application
-The following is a reference example demonstrating how an entire web application—including reactive state, UI templates, CSS styling, and logic—can be authored inside a single `.html` file without external build tools:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AduScript Single-File Task Manager</title>
-  <!-- Load the global browser engine from CDN -->
-  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
-</head>
-<body>
-  <div id="app"></div>
-
-  <script type="text/aduscript">
-    // Injected component stylesheet
-    $adu.css`
-      :root {
-        --bg: #0f172a;
-        --card-bg: #1e293b;
-        --accent: #3b82f6;
-        --accent-hover: #2563eb;
-        --text: #f8fafc;
-        --text-muted: #94a3b8;
-        --border: #334155;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family: system-ui, -apple-system, sans-serif;
-        display: flex;
-        justify-content: center;
-        padding: 40px 16px;
-      }
-      .container {
-        width: 100%;
-        max-width: 500px;
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-      }
-      .input-group {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-      }
-      input[type="text"] {
-        flex: 1;
-        background: #0f172a;
-        border: 1px solid var(--border);
-        color: var(--text);
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        outline: none;
-      }
-      input[type="text"]:focus {
-        border-color: var(--accent);
-      }
-      button.primary {
-        background: var(--accent);
-        color: white;
-        border: none;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      button.primary:hover {
-        background: var(--accent-hover);
-      }
-      .task-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .task-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        background: #0f172a;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-      }
-      .task-item.done span {
-        text-decoration: line-through;
-        color: var(--text-muted);
-      }
-      .delete-btn {
-        background: transparent;
-        border: none;
-        color: #ef4444;
-        cursor: pointer;
-        font-size: 16px;
-      }
-    `
-
-    // Reactive State Signals
-    state tasks = [
-      { id: 1, text: "Learn AduScript grammar", completed: true },
-      { id: 2, text: "Build single-file web app", completed: false }
-    ]
-    state newText = ""
-
-    // Action Handlers
-    fn addTask() {
-      if (newText.value.trim() === "") return;
-      let nextId = tasks.value.length > 0 ? Math.max(...tasks.value.map(t -> t.id)) + 1 : 1
-      tasks.value = [
-        ...tasks.value,
-        { id: nextId, text: newText.value.trim(), completed: false }
-      ]
-      newText.value = ""
-    }
-
-    fn toggleTask(id) {
-      tasks.value = tasks.value.map(t -> {
-        if (t.id === id) {
-          return { ...t, completed: !t.completed }
-        }
-        return t
-      })
-    }
-
-    fn deleteTask(id) {
-      tasks.value = tasks.value.filter(t -> t.id !== id)
-    }
-
-    // Main Component Definition
-    fn App() {
-      let pendingCount = tasks.value.filter(t -> !t.completed).length
-
-      return $adu.html`
-        <div class="container">
-          <div class="header">
-            ${$adu.logo(36)}
-            <div>
-              <h2 style="margin: 0;">Task Manager</h2>
-              <small style="color: var(--text-muted);">${pendingCount} remaining</small>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <input
-              type="text"
-              placeholder="Add a new task..."
-              value="${newText.value}"
-              oninput=${(e) -> newText.value = e.target.value}
-              onkeydown=${(e) -> { if (e.key === "Enter") addTask() }}
-            />
-            <button class="primary" onclick=${addTask}>Add</button>
-          </div>
-
-          <ul class="task-list">
-            ${tasks.value.map(task -> $adu.html`
-              <li class="task-item ${task.completed ? 'done' : ''}">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input
-                    type="checkbox"
-                    checked="${task.completed}"
-                    onchange=${() -> toggleTask(task.id)}
-                  />
-                  <span>${task.text}</span>
-                </label>
-                <button class="delete-btn" onclick=${() -> deleteTask(task.id)}>✕</button>
-              </li>
-            `)}
-          </ul>
-        </div>
-      `
-    }
-
-    // Mount to DOM
-    $adu.mount("#app", App)
-  </script>
-</body>
-</html>
-```
-
-### Example: Multi-File Project Architecture
-For larger applications, split code across multiple `.ads` files. The CDN runtime automatically resolves, compiles, and links relative subfolder `.ads` imports in real time:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Modular AduScript App</title>
-  <link rel="stylesheet" href="styles/main.css">
-  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/aduscript" src="app.ads"></script>
-</body>
-</html>
-```
-
----
-
 ## 3. Strict Grammar Rules for AI Models
 
 ### Rule 1: Variables and Mutability
 * **`let` (Immutable):** Used for all constants and non-reassigned variables (compiles to JavaScript `const`).
 * **`mut` (Mutable):** Used for any variable that will be reassigned (compiles to JavaScript `let`).
 * **`state` (Reactive Signal):** Compiles to `$adu.state(...)`. Reads and mutations must use `.value`.
+* **Prohibitions:**
+  * **Never use `val`:** `val` is NOT a valid AduScript keyword. Always use `let`.
+  * **Never use `var`:** `var` does not exist in AduScript. Use `mut` or `let`.
+  * **Never use `const`:** `const` does not exist in AduScript. Always use `let`.
+  * **Never invent non-existent APIs like `Adu.randomInt()`:** Always use standard web APIs like `Math.random()`, `Math.floor()`, `performance.now()`, and `document`.
 
 ```aduscript
 // Correct Example:
@@ -420,88 +249,100 @@ fn SearchBox() {
 
 ---
 
-## 4. Reference Example: 3D Interactive WebGL Scene
+## 4. Complete Single-File 3D Game Example
 
-The following is an illustrative reference example showing a 3D interactive Three.js animation running natively via AduScript:
+The following is an illustrative reference example showing a full 3D interactive Three.js game inside a single HTML file:
 
-```aduscript
-use cdn:three as THREE
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AduScript 3D Flight Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+    #ui { position: absolute; top: 20px; left: 20px; color: #fff; z-index: 10; pointer-events: none; }
+  </style>
+  <!-- Load the AduScript Language Engine -->
+  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
+</head>
+<body>
+  <div id="ui"></div>
 
-// Scene setup
-let scene = new THREE.Scene()
-let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-let renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
+  <!-- Write Pure AduScript with type="text/aduscript" -->
+  <script type="text/aduscript">
+    use cdn:three as THREE
 
-// Lighting
-let ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-let dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
-dirLight.position.set(5, 10, 7)
-scene.add(ambientLight)
-scene.add(dirLight)
+    // Reactive State
+    state score = 0
+    state isGameOver = false
 
-// 3D Geometry
-let geometry = new THREE.TorusKnotGeometry(1.2, 0.4, 128, 32)
-let material = new THREE.MeshStandardMaterial({
-  color: 0x38bdf8,
-  roughness: 0.2,
-  metalness: 0.8
-})
-let knot = new THREE.Mesh(geometry, material)
-scene.add(knot)
+    // Three.js 3D Setup
+    let scene = new THREE.Scene()
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    let renderer = new THREE.WebGLRenderer({ antialias: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    document.body.appendChild(renderer.domElement)
 
-camera.position.z = 4.5
+    let ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+    let dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
+    dirLight.position.set(5, 10, 7)
+    scene.add(ambientLight)
+    scene.add(dirLight)
 
-// Animation loop
-mut lastTime = performance.now()
+    // Player Mesh
+    let playerGeo = new THREE.ConeGeometry(0.5, 1.5, 8)
+    let playerMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8 })
+    let player = new THREE.Mesh(playerGeo, playerMat)
+    player.rotation.x = Math.PI / 2
+    scene.add(player)
 
-fn animate() {
-  requestAnimationFrame(animate)
-  let now = performance.now()
-  let delta = (now - lastTime) / 1000
-  lastTime = now
+    camera.position.set(0, 3, 6)
+    camera.lookAt(0, 0, 0)
 
-  knot.rotation.x += delta * 0.6
-  knot.rotation.y += delta * 0.9
+    // Game Loop
+    mut lastTime = performance.now()
 
-  renderer.render(scene, camera)
-}
+    fn animate() {
+      requestAnimationFrame(animate)
+      let now = performance.now()
+      let delta = (now - lastTime) / 1000
+      lastTime = now
 
-animate()
+      if (!isGameOver.value) {
+        score.value += 1
+        player.rotation.z += delta * 2.0
+      }
 
-// Window resize handler
-window.addEventListener("resize", () -> {
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
-})
+      renderer.render(scene, camera)
+    }
+
+    animate()
+
+    // UI Overlay
+    fn UI() {
+      return $adu.html`
+        <div>
+          ${$adu.logo(32)}
+          <h2>Score: ${score.value}</h2>
+        </div>
+      `
+    }
+
+    $adu.mount("#ui", UI)
+  </script>
+</body>
+</html>
 ```
 
 ---
 
-## 5. Syntax Comparison Cheat Sheet
-
-| Feature | AduScript (.ads) | Standard JavaScript |
-| :--- | :--- | :--- |
-| **Immutable variable** | `let name = "John"` | `const name = "John";` |
-| **Mutable variable** | `mut count = 0; count += 1` | `let count = 0; count += 1;` |
-| **Reactive signal** | `state open = false; open.value = true` | `$adu.state(false)` |
-| **Arrow closure** | `(a, b) -> a + b` | `(a, b) => a + b` |
-| **Function** | `fn add(a, b) -> a + b` | `function add(a, b) { return a + b; }` |
-| **F-String** | `f"User: {name}"` | `` `User: ${name}` `` |
-| **Data pipeline** | `val \|> fn1() \|> fn2(_)` | `fn2(fn1(val))` |
-| **Pattern matching** | `match x with { 1..5 => "Low", _ => "High" }` | `switch / nested ternary` |
-| **CDN import** | `use cdn:three as THREE` | `import * as THREE from 'https://...'` |
-| **HTML template** | `$adu.html\`<button onclick=${onClick}>+1</button>\`` | Reactive DOM Element |
-| **DOM mounting** | `$adu.mount("#app", App)` | Component mount |
-
----
-
-## 6. Common AI Pitfalls and Solutions
+## 5. Common AI Pitfalls and Solutions
 
 | Anti-Pattern (Do NOT Generate) | Correct AduScript Pattern | Explanation |
 | :--- | :--- | :--- |
+| `<script>` without type | `<script type="text/aduscript">` | AduScript browser compiler only executes scripts with `type="text/aduscript"`. |
+| Missing CDN script in `<head>` | `<script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>` | Required to load the language interpreter in the browser. |
 | `val x = 10;` | `let x = 10` | `val` is not an AduScript keyword. Use `let` for immutable variables. |
 | `var x = 10;` | `mut x = 10` | `var` does not exist in AduScript. Use `mut` or `let`. |
 | `const x = 10;` | `let x = 10` | `const` is invalid in AduScript; use `let` for immutability. |
