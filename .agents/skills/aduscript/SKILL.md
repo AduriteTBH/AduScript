@@ -81,6 +81,16 @@ $adu.mount("#root", App)
 
 ---
 
+## 🤖 AI Assistant Rules & Cheat Sheet
+* **F-Strings:** Write `f"Hello {name}"` (DO NOT put `$` before `{` inside f-strings).
+* **Arrow Closures:** Always use thin arrow `->` (`(a, b) -> a + b` or `item -> { ... }`).
+* **Increments:** Use `count += 1` (never `count++` or `count--`).
+* **Subfolder Imports:** `import { createWorld } from "./engine/world.ads"`.
+* **Exporting:** `export fn name() { ... }`, `export let name = ...`.
+* **Vectors & 3D:** Vector SVGs in `$adu.html`, dynamic 16x16 pixel art canvas, `use cdn:three as THREE`.
+
+---
+
 ## 🛠️ CLI Commands & Toolchain
 
 * **Dev Server (Zero Config):** `aduscript dev <dir>`
@@ -88,3 +98,4 @@ $adu.mount("#root", App)
 * **Compile Project / Directory:** `aduscript <dir> -o <outDir>`
 * **Run in Node.js:** `aduscript script.ads --run`
 * **Scaffold Project:** `aduscript init <projectName>`
+

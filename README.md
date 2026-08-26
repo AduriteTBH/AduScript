@@ -100,6 +100,102 @@ Because AduScript is open and public, anyone can create an `.html` file anywhere
 
 ---
 
+## 🤖 AI Assistant & Human Developer Fast Reference Guide
+
+If you are an **AI coding assistant** (Claude, Gemini, GPT, Cursor, Antigravity) or a **new developer**, follow these core language rules when writing `.ads` files:
+
+### 📋 Syntax Rules & Cheat Sheet:
+
+| Feature | Syntax | Example | What NOT to do |
+| :--- | :--- | :--- | :--- |
+| **Immutable Variable** | `let name = val` | `let speed = 10` | Don't use `const` (use `let`) |
+| **Mutable Variable** | `mut name = val` | `mut count = 0; count += 1` | Don't reassign `let` variables |
+| **Reactive State** | `state name = val` | `state open = false; open.value = true` | Don't mutate without `.value` |
+| **Arrow Closures** | `params -> expr` | `(a, b) -> a + b` or `item -> { ... }` | ⚠️ **DO NOT USE `=>` FOR ARROWS** (use `->`) |
+| **Functions** | `fn name(args) -> expr` | `fn double(x) -> x * 2` | Don't use `function` keyword |
+| **F-Strings** | `f"Hello {name}"` | `f"Score: {points}, Level: {lvl}"` | ⚠️ **DO NOT PUT `$` IN F-STRINGS** (use `{x}`, not `${x}`) |
+| **Increment/Decrement** | `val += 1` / `val -= 1` | `frames += 1` | Don't use `++` or `--` |
+| **Pattern Matching** | `match val with { ... }` | `match role with { "admin" => true, _ => false }` | Match arms use `=>` |
+| **Data Pipelines** | `data \|> fn1() \|> fn2(_)` | `nums \|> filter(n -> n > 0) \|> sum()` | Use `_` for custom arg position |
+| **CDN Libraries** | `use cdn:pkg as Name` | `use cdn:three as THREE` | No npm install or bundlers required |
+| **Subfolder Imports** | `import { x } from "./path.ads"` | `import { createWorld } from "./engine/world.ads"` | Subfolder `.ads` imports resolve live |
+| **HTML Templates** | `$adu.html\`...\`` | `$adu.html\`<div onclick=${() -> click()}>${child}</div>\`` | Automatically binds events & live DOM |
+| **SVGs & Graphics** | Vector tags in `$adu.html` | `$adu.html\`<svg width="24" height="24">...</svg>\`` | SVGs and Canvas integrate natively |
+
+---
+
+## 👥 How to Build an AduScript App in 3 Steps (Human Developer Guide)
+
+You don't need to install Node.js, Webpack, Vite, or NPM to write and publish AduScript apps. Anyone on any computer can create a new project in seconds:
+
+### Step 1: Create Your Project Folder
+Create a folder for your new app:
+```
+my-game/
+├── index.html
+├── app.ads
+└── styles/
+    └── main.css
+```
+
+### Step 2: Set Up `index.html`
+In your `index.html`, link your CSS, load the AduScript worldwide CDN, and link your `app.ads`:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My AduScript App</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <!-- Load Worldwide AduScript Engine -->
+  <script src="https://cdn.jsdelivr.net/gh/AduriteTBH/AduScript@main/dist/aduscript-browser.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Your AduScript App File -->
+  <script type="text/aduscript" src="app.ads"></script>
+</body>
+</html>
+```
+
+### Step 3: Write Your Code in `app.ads`
+```aduscript
+state count = 0
+
+fn App() {
+  return $adu.html`
+    <div class="card">
+      ${$adu.logo(48)}
+      <h1>Hello from AduScript!</h1>
+      <p>Clicks: <b>${count.value}</b></p>
+      <button onclick=${() -> count.value += 1}>+ Increment</button>
+    </div>
+  `
+}
+
+$adu.mount("#root", App)
+```
+
+### Step 4: Run & Deploy Anywhere!
+* **To Play / Test:** Just double-click `index.html` or open it in your browser!
+* **To Deploy:** Push the folder to GitHub Pages, Netlify, or Vercel. There are **zero build commands** needed — it runs directly!
+
+---
+
+### 🧠 Coming From Other Languages? Quick Mental Model:
+
+* **🐍 If you know Python:**
+  * String formatting `f"Hello {name}"` works identically to Python f-strings.
+* **🦀 If you know Rust:**
+  * Variables are immutable with `let` by default. Use `mut` when you want a reassignable variable.
+* **⚛️ If you know React / Vue / Svelte:**
+  * `state name = val` gives you reactive UI updates automatically. You never need hooks (`useState`, `useEffect`), dependency arrays, or virtual DOMs.
+* **💧 If you know Elixir / F# / OCaml:**
+  * The pipeline operator `|>` lets you chain functions cleanly from left to right.
+
+---
+
 ## 📖 Complete Language Guide & Documentation
 
 ### 1. Variables: Immutable by Default

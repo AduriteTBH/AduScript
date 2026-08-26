@@ -859,7 +859,10 @@ export class Parser {
 
     if (token.type === TokenType.NEW) {
       this.advance();
-      const callee = this.parseExpression(Precedence.POSTFIX);
+      let callee = this.parsePrefix();
+      while (this.check(TokenType.DOT) || this.check(TokenType.OPTIONAL_CHAIN) || this.check(TokenType.LBRACKET)) {
+        callee = this.parseInfix(callee);
+      }
       let args = [];
       if (this.match(TokenType.LPAREN)) {
         args = this.parseArguments();
