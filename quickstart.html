@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AduScript Zero-Node Quickstart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- 1. Load Standalone AduScript Engine (Zero Node.js / Zero Tooling Needed!) -->
+  <script src="dist/aduscript-browser.js"></script>
+</head>
+<body>
+  <!-- Container for AduScript App Mount -->
+  <div id="app"></div>
+
+  <!-- 2. Write Pure AduScript with HTML & CSS Directly in the Browser -->
+  <script type="text/aduscript">
+    // Injected Pure CSS for this component
+    $adu.css`
+      :root {
+        --bg-dark: #0b0d14;
+        --card-bg: rgba(22, 26, 42, 0.85);
+        --primary: #C0004D;
+        --accent: #38bdf8;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg-dark);
+        color: #fff;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      .quickstart-card {
+        max-width: 620px;
+        width: 100%;
+        background: var(--card-bg);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 24px;
+        padding: 36px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .logo-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .title {
+        font-size: 26px;
+        font-weight: 800;
+        margin: 0;
+      }
+      .subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .interactive-box {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .counter-num {
+        font-size: 38px;
+        font-weight: 800;
+        font-family: 'Fira Code', monospace;
+        color: #38bdf8;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #C0004D, #e11d48);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 18px rgba(192, 0, 77, 0.4);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px) scale(1.03);
+      }
+      .btn-primary:active {
+        transform: scale(0.97);
+      }
+      .code-snippet {
+        background: #05060a;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        padding: 16px;
+        font-family: 'Fira Code', monospace;
+        font-size: 12.5px;
+        color: #cbd5e1;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+    `
+
+    // Reactive State
+    state clicks = 0
+
+    // Pipeline transformation
+    fn calculatePower(x) -> x * 10
+
+    fn renderQuickstart() {
+      let power = clicks.value |> calculatePower()
+
+      return $adu.html`
+        <div class="quickstart-card">
+          <div class="logo-header">
+            ${$adu.logo(52)}
+            <div>
+              <h1 class="title">AduScript Zero-Node App</h1>
+              <div class="subtitle">100% Client-Side • No Node.js Required • Pure .ads, HTML & CSS</div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div>
+              <div style="font-size:12px;text-transform:uppercase;color:#94a3b8;font-weight:700;letter-spacing:0.5px;">Reactive State</div>
+              <div class="counter-num">${clicks.value} <span style="font-size:14px;color:#94a3b8;">(${power} XP)</span></div>
+            </div>
+            <button class="btn-primary" onclick=${() -> { clicks.value += 1 }}>
+              ⚡ Click Me (+1)
+            </button>
+          </div>
+
+          <div style="font-size:13px;color:#94a3b8;">
+            <b>How it works:</b> Just drop <code style="color:#e2e8f0;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;">&lt;script src="dist/aduscript-browser.js"&gt;&lt;/script&gt;</code> into any HTML file and write <code style="color:#e2e8f0;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;">&lt;script type="text/aduscript"&gt;</code>!
+          </div>
+
+          <div class="code-snippet">
+            <span style="color:#ec4899;">state</span> count = <span style="color:#38bdf8;">0</span><br/>
+            <span style="color:#6366f1;">fn</span> render() {<br/>
+            &nbsp;&nbsp;<span style="color:#ec4899;">return</span> $adu.html`&lt;button onclick=\${() -> count.value += 1}&gt;Clicks: \${count.value}&lt;/button&gt;`<br/>
+            }<br/>
+            $adu.mount(<span style="color:#a5b4fc;">"#app"</span>, render)
+          </div>
+        </div>
+      `
+    }
+
+    $adu.mount("#app", renderQuickstart)
+    console.log("✔ Zero-Node Quickstart Running Live with Official AduScript Logo!")
+  </script>
+</body>
+</html>

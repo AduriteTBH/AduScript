@@ -1,0 +1,88 @@
+/* Smooth Animation Styles for YouTube Clone */
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px rgba(255, 0, 51, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(255, 0, 51, 0.6); }
+  100% { box-shadow: 0 0 10px rgba(255, 0, 51, 0.2); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Card Hover Animation */
+.video-card-anim {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+  animation: fadeIn 0.35s ease forwards;
+}
+
+.video-card-anim:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+.video-card-anim:hover .video-thumbnail img,
+.video-card-anim:hover .video-thumbnail-canvas {
+  transform: scale(1.05);
+}
+
+.video-thumbnail-wrapper {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.video-thumbnail-canvas,
+.video-thumbnail-img {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Button & Interactive Ripple */
+.interactive-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-btn:hover {
+  transform: scale(1.05);
+}
+
+.interactive-btn:active {
+  transform: scale(0.95);
+}
+
+.subscribe-btn-anim {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.subscribe-btn-anim.subscribed {
+  background: var(--yt-bg-active) !important;
+  color: var(--yt-text-secondary) !important;
+}
+
+/* Like Heart Ripple */
+.liked-active {
+  color: var(--yt-accent-blue) !important;
+  animation: pulseGlow 1.5s infinite;
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #181818 25%, #252525 50%, #181818 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

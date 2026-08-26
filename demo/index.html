@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AduScript Studio & 3D Interactive Showcase</title>
+  <meta name="description" content="AduScript - The modern, clean, highly expressive web programming language with reactive primitives, pipeline operators, pattern matching, and zero-boilerplate Three.js 3D interop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0a0b10;
+      --bg-surface: #12141e;
+      --bg-elevated: #1a1d2d;
+      --bg-card: rgba(26, 29, 45, 0.7);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.3);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.4);
+      --accent: #38bdf8;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* --- TOP NAVBAR --- */
+    .navbar {
+      height: 64px;
+      background: rgba(18, 20, 30, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #6366f1, #38bdf8, #ec4899);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preset-select {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-select:hover, .preset-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* --- MAIN APP WORKSPACE --- */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+      background: var(--bg-base);
+    }
+
+    /* --- LEFT PANE: CODE EDITOR --- */
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      position: relative;
+    }
+
+    .pane-header {
+      height: 44px;
+      background: rgba(18, 20, 30, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+
+    .file-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      background: var(--bg-elevated);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border-left: 2px solid var(--primary);
+    }
+
+    .file-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .editor-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .line-numbers {
+      width: 48px;
+      background: rgba(10, 11, 16, 0.6);
+      color: var(--text-dim);
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 22px;
+      padding: 16px 8px;
+      text-align: right;
+      user-select: none;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .code-editor {
+      flex: 1;
+      background: transparent;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 13.5px;
+      line-height: 22px;
+      padding: 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      white-space: pre;
+      overflow-y: auto;
+      tab-size: 2;
+    }
+
+    /* --- RIGHT PANE: MULTI-TAB INSPECTOR --- */
+    .preview-pane {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-base);
+    }
+
+    .tab-bar {
+      height: 44px;
+      background: rgba(18, 20, 30, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 6px;
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--bg-elevated);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .tab-content {
+      flex: 1;
+      display: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- 3D VIEWPORT TAB --- */
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: radial-gradient(circle at center, #13172c 0%, #080910 100%);
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(18, 20, 30, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      z-index: 10;
+      pointer-events: auto;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .hud-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hud-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .hud-control {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* --- JS OUTPUT TAB --- */
+    .code-viewer {
+      flex: 1;
+      padding: 20px;
+      background: #0d0e17;
+      color: #93c5fd;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 20px;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    /* --- AST VIEWER TAB --- */
+    .ast-viewer {
+      flex: 1;
+      padding: 20px;
+      background: #0d0e17;
+      color: #a7f3d0;
+      font-family: 'Fira Code', monospace;
+      font-size: 12.5px;
+      line-height: 18px;
+      overflow: auto;
+    }
+
+    /* --- TOKENS TAB --- */
+    .tokens-viewer {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      background: #0d0e17;
+    }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .token-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+    }
+
+    .token-type {
+      color: #818cf8;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .token-val {
+      color: #f1f5f9;
+      word-break: break-all;
+    }
+
+    .token-pos {
+      color: var(--text-dim);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    /* --- CONSOLE LOG HUD --- */
+    .console-hud {
+      height: 140px;
+      background: #08090f;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .console-header {
+      height: 30px;
+      background: rgba(18, 20, 30, 0.6);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .console-body {
+      flex: 1;
+      padding: 8px 14px;
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .log-item {
+      margin-bottom: 4px;
+      color: #cbd5e1;
+    }
+
+    .log-item.error {
+      color: #f87171;
+    }
+
+    .log-item.success {
+      color: #34d399;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo" style="background:transparent;padding:0;display:flex;align-items:center;justify-content:center;">
+        <svg width="34" height="34" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="800" rx="40" fill="#C0004D"/><path d="M352.688 735H310.5L358.031 591H411.469L459 735H416.813L385.313 630.656H384.188L352.688 735ZM344.813 678.188H424.125V707.437H344.813V678.188ZM528.275 735H472.869V591H527.713C542.525 591 555.322 593.883 566.104 599.648C576.932 605.367 585.275 613.617 591.135 624.398C597.041 635.133 599.994 648 599.994 663C599.994 678 597.064 690.891 591.205 701.672C585.346 712.406 577.049 720.656 566.314 726.422C555.58 732.141 542.9 735 528.275 735ZM511.963 701.812H526.869C533.994 701.812 540.064 700.664 545.08 698.367C550.143 696.07 553.986 692.109 556.611 686.484C559.283 680.859 560.619 673.031 560.619 663C560.619 652.969 559.26 645.141 556.541 639.516C553.869 633.891 549.932 629.93 544.729 627.633C539.572 625.336 533.244 624.187 525.744 624.187H511.963V701.812ZM695.707 636C695.332 631.312 693.574 627.656 690.434 625.031C687.34 622.406 682.629 621.094 676.301 621.094C672.27 621.094 668.965 621.586 666.387 622.57C663.855 623.508 661.98 624.797 660.762 626.437C659.543 628.078 658.91 629.953 658.863 632.062C658.77 633.797 659.074 635.367 659.777 636.773C660.527 638.133 661.699 639.375 663.293 640.5C664.887 641.578 666.926 642.562 669.41 643.453C671.895 644.344 674.848 645.141 678.27 645.844L690.082 648.375C698.051 650.062 704.871 652.289 710.543 655.055C716.215 657.82 720.855 661.078 724.465 664.828C728.074 668.531 730.723 672.703 732.41 677.344C734.145 681.984 735.035 687.047 735.082 692.531C735.035 702 732.668 710.016 727.98 716.578C723.293 723.141 716.59 728.133 707.871 731.555C699.199 734.977 688.77 736.688 676.582 736.688C664.066 736.688 653.145 734.836 643.816 731.133C634.535 727.43 627.316 721.734 622.16 714.047C617.051 706.312 614.473 696.422 614.426 684.375H651.551C651.785 688.781 652.887 692.484 654.855 695.484C656.824 698.484 659.59 700.758 663.152 702.305C666.762 703.852 671.051 704.625 676.02 704.625C680.191 704.625 683.684 704.109 686.496 703.078C689.309 702.047 691.441 700.617 692.895 698.789C694.348 696.961 695.098 694.875 695.145 692.531C695.098 690.328 694.371 688.406 692.965 686.766C691.605 685.078 689.355 683.578 686.215 682.266C683.074 680.906 678.832 679.641 673.488 678.469L659.145 675.375C646.395 672.609 636.34 667.992 628.98 661.523C621.668 655.008 618.035 646.125 618.082 634.875C618.035 625.734 620.473 617.742 625.395 610.898C630.363 604.008 637.23 598.641 645.996 594.797C654.809 590.953 664.91 589.031 676.301 589.031C687.926 589.031 697.98 590.977 706.465 594.867C714.949 598.758 721.488 604.242 726.082 611.32C730.723 618.352 733.066 626.578 733.113 636H695.707Z" fill="white"/><path d="M418 0L0 447V532.254L498.5 0H418Z" fill="#C7004F"/></svg>
+      </div>
+      <div class="brand-title">AduScript Studio</div>
+      <div class="brand-badge">v1.0.0 (ECMAScript 2024+)</div>
+    </div>
+
+    <div class="nav-controls">
+      <select id="preset-selector" class="preset-select">
+        <option value="scene">🪐 3D Three.js Galaxy (scene.ads)</option>
+        <option value="reactive">⚡ Reactive State & HUD (reactive_ui.ads)</option>
+        <option value="pipeline">🔀 Data Pipeline & Pattern Matching (pipeline.ads)</option>
+        <option value="blank">📝 Blank Playground</option>
+      </select>
+
+      <button id="btn-run" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Compile & Run
+      </button>
+
+      <button id="btn-copy-js" class="btn btn-secondary" title="Copy Transpiled JavaScript">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy JS
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Grid -->
+  <main class="workspace">
+    <!-- Left Pane: Editor -->
+    <section class="editor-pane">
+      <div class="pane-header">
+        <div class="file-tab">
+          <span class="file-dot"></span>
+          <span id="active-filename">scene.ads</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-dim);">Live Parser Active</div>
+      </div>
+
+      <div class="editor-container">
+        <div id="line-numbers" class="line-numbers">1</div>
+        <textarea id="code-editor" class="code-editor" spellcheck="false"></textarea>
+      </div>
+    </section>
+
+    <!-- Right Pane: Output Tabs & Viewport -->
+    <section class="preview-pane">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="tab-viewport">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg>
+          3D Viewport / App
+        </button>
+        <button class="tab-btn" data-tab="tab-js">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Compiled JS (ES2024+)
+        </button>
+        <button class="tab-btn" data-tab="tab-ast">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          AST Inspector
+        </button>
+        <button class="tab-btn" data-tab="tab-tokens">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Tokens
+        </button>
+      </div>
+
+      <!-- Tab 1: 3D Viewport -->
+      <div id="tab-viewport" class="tab-content active">
+        <div id="canvas-container"></div>
+        <div class="hud-overlay" id="hud-overlay">
+          <div class="hud-title">
+            <span>AduScript Reactive Controls</span>
+            <span style="font-size: 11px; color: #10b981;">● 60 FPS</span>
+          </div>
+          <div class="hud-row">
+            <span>Mesh Geometry</span>
+            <select id="hud-shape" class="hud-control">
+              <option value="torusKnot">Torus Knot</option>
+              <option value="icosahedron">Icosahedron</option>
+              <option value="octahedron">Octahedron</option>
+              <option value="dodecahedron">Dodecahedron</option>
+            </select>
+          </div>
+          <div class="hud-row">
+            <span>Wireframe Mode</span>
+            <input type="checkbox" id="hud-wireframe">
+          </div>
+          <div class="hud-row">
+            <span>Rotation Speed</span>
+            <input type="range" id="hud-speed" min="0.2" max="3.0" step="0.1" value="1.0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Compiled JS -->
+      <div id="tab-js" class="tab-content">
+        <div id="js-viewer" class="code-viewer">// Compiled output will appear here...</div>
+      </div>
+
+      <!-- Tab 3: AST Inspector -->
+      <div id="tab-ast" class="tab-content">
+        <pre id="ast-viewer" class="ast-viewer">// AST JSON...</pre>
+      </div>
+
+      <!-- Tab 4: Tokens Inspector -->
+      <div id="tab-tokens" class="tab-content">
+        <div class="tokens-viewer">
+          <div id="tokens-grid" class="token-grid"></div>
+        </div>
+      </div>
+
+      <!-- Console Log HUD -->
+      <div class="console-hud">
+        <div class="console-header">
+          <span>AduScript Diagnostics & Runtime Console</span>
+          <button id="btn-clear-console" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;">Clear</button>
+        </div>
+        <div id="console-body" class="console-body">
+          <div class="log-item success">✔ AduScript Compiler v1.0.0 Engine Ready.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Load Standalone In-Browser AduScript Compiler & Runtime -->
+  <script src="../dist/aduscript-browser.js"></script>
+
+  <!-- In-Browser IDE Application Logic -->
+  <script>
+    // Presets database
+    const PRESETS = {
+      scene: `// ========================================================
+// AduScript 3D Interactive Three.js Showcase
+// - Zero-boilerplate CDN: 'use cdn:three'
+// - Pipeline Operator: '|>'
+// - Pattern Matching: 'match ... with'
+// - Reactive State: 'state' & 'watch'
+// ========================================================
+
+use cdn:three as THREE
+
+// 1. Reactive State Primitives
+state speed = 1.0
+state particleSpeed = 1.2
+state wireframe = false
+state activeGeometry = "torusKnot"
+state pointCount = 2400
+
+// 2. Setup Three.js WebGL Scene
+let container = document.getElementById("canvas-container")
+let width = container.clientWidth || window.innerWidth
+let height = container.clientHeight || window.innerHeight
+
+let scene = new THREE.Scene()
+scene.fog = new THREE.FogExp2(0x0a0c16, 0.025)
+
+let camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
+camera.position.set(0, 1.5, 7)
+
+let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+renderer.setSize(width, height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+container.replaceChildren(renderer.domElement)
+
+// 3. Lighting Rig
+let ambientLight = new THREE.AmbientLight(0x22223b, 1.8)
+scene.add(ambientLight)
+
+let primaryLight = new THREE.PointLight(0x6366f1, 4, 30)
+primaryLight.position.set(4, 5, 4)
+scene.add(primaryLight)
+
+let secondaryLight = new THREE.PointLight(0xec4899, 3, 30)
+secondaryLight.position.set(-4, -3, -2)
+scene.add(secondaryLight)
+
+// 4. Pattern Matching for Geometric Mesh
+fn createGeometry(shapeName) -> match shapeName with {
+  "torusKnot"   => new THREE.TorusKnotGeometry(1.6, 0.45, 160, 32),
+  "icosahedron" => new THREE.IcosahedronGeometry(2.1, 4),
+  "octahedron"  => new THREE.OctahedronGeometry(2.2, 3),
+  "dodecahedron"=> new THREE.DodecahedronGeometry(2.0, 2),
+  _             => new THREE.SphereGeometry(2.0, 48, 48)
+}
+
+let mainMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0x4f46e5,
+  emissive: 0x1e1b4b,
+  roughness: 0.15,
+  metalness: 0.85,
+  clearcoat: 1.0,
+  wireframe: wireframe.value
+})
+
+mut mainMesh = new THREE.Mesh(createGeometry(activeGeometry.value), mainMaterial)
+scene.add(mainMesh)
+
+// 5. Particle Vortex Galaxy Generation
+fn createParticleVortex(count) {
+  let geo = new THREE.BufferGeometry()
+  let positions = new Float32Array(count * 3)
+  let colors = new Float32Array(count * 3)
+  let c1 = new THREE.Color(0x38bdf8)
+  let c2 = new THREE.Color(0xa855f7)
+
+  for i in 0..count {
+    let i3 = i * 3
+    let radius = Math.random() * 8 + 2.5
+    let theta = Math.random() * Math.PI * 2
+    let spiral = radius * 0.6 + theta
+
+    positions[i3] = Math.cos(spiral) * radius
+    positions[i3 + 1] = (Math.random() - 0.5) * 3.5
+    positions[i3 + 2] = Math.sin(spiral) * radius
+
+    let mixed = c1.clone().lerp(c2, radius / 10.5)
+    colors[i3] = mixed.r
+    colors[i3 + 1] = mixed.g
+    colors[i3 + 2] = mixed.b
+  }
+
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
+
+  let mat = new THREE.PointsMaterial({
+    size: 0.045,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending
+  })
+
+  return new THREE.Points(geo, mat)
+}
+
+let particles = createParticleVortex(pointCount.value)
+scene.add(particles)
+
+// 6. Interactive Controls & Reactivity
+watch activeGeometry => {
+  scene.remove(mainMesh)
+  mainMesh.geometry.dispose()
+  mainMesh.geometry = createGeometry(activeGeometry.value)
+  scene.add(mainMesh)
+}
+
+watch wireframe => {
+  mainMaterial.wireframe = wireframe.value
+}
+
+// Bind HUD controls to Reactive State
+let hudShape = document.getElementById("hud-shape")
+if (hudShape) {
+  hudShape.value = activeGeometry.value
+  hudShape.onchange = (e) -> { activeGeometry.value = e.target.value }
+}
+
+let hudWire = document.getElementById("hud-wireframe")
+if (hudWire) {
+  hudWire.checked = wireframe.value
+  hudWire.onchange = (e) -> { wireframe.value = e.target.checked }
+}
+
+let hudSpeed = document.getElementById("hud-speed")
+if (hudSpeed) {
+  hudSpeed.oninput = (e) -> { speed.value = parseFloat(e.target.value) }
+}
+
+// 7. Animation Loop
+mut clock = new THREE.Clock()
+
+fn animate() {
+  window.__aduSceneRaf = requestAnimationFrame(animate)
+  let delta = clock.getDelta()
+  let elapsed = clock.getElapsedTime()
+
+  let rot = speed.value * delta
+  mainMesh.rotation.x += rot * 0.6
+  mainMesh.rotation.y += rot * 0.8
+
+  particles.rotation.y += 0.003 * particleSpeed.value
+  primaryLight.intensity = 3.5 + Math.sin(elapsed * 3) * 1.5
+
+  renderer.render(scene, camera)
+}
+
+if (window.__aduSceneRaf) cancelAnimationFrame(window.__aduSceneRaf)
+animate()
+
+console.log("✔ AduScript 3D Interactive Three.js scene running flawlessly!")`,
+
+      reactive: `// ========================================================
+// AduScript Reactive UI & DOM Demonstration
+// - Fine-grained Reactive Signals ('state')
+// - Automatic Dependency Tracking ('effect')
+// - Signal Observers ('watch')
+// - Pipeline Data Formatting ('|>')
+// ========================================================
+
+state counter = 0
+state username = "Lead Developer"
+state status = "online"
+
+fn getStatsBadge(count) -> count |> Math.max(0, _) |> (x -> f"Level {Math.floor(x / 5) + 1} ({x} exp)")
+
+effect {
+  let badge = getStatsBadge(counter.value)
+  console.log(f"Status update: {username.value} is {status.value} - {badge}")
+}
+
+watch counter => {
+  console.log(f"Counter incremented to: {counter.value}")
+}
+
+// Pattern matching status styler
+fn getStatusColor(s) -> match s with {
+  "online"  => "#10b981",
+  "busy"    => "#f59e0b",
+  "offline" => "#6b7280",
+  _         => "#6366f1"
+}
+
+console.log(f"Status '{status.value}' color code: {getStatusColor(status.value)}")
+
+// Simulate rapid reactive updates
+for i in 1..5 {
+  counter.value += 2
+}`,
+
+      pipeline: `// ========================================================
+// AduScript Pipeline & Pattern Matching Showcase
+// - Advanced Pipeline Chains ('|>') with placeholders ('_')
+// - Method shorthand pipeline ('.filter()', '.reduce()')
+// - Pattern matching across complex objects & ranges
+// ========================================================
+
+let rawTransactions = [
+  { id: "TX-101", amount: 150.75, category: "cloud", status: "completed" },
+  { id: "TX-102", amount: -45.00,  category: "refund", status: "pending" },
+  { id: "TX-103", amount: 890.00, category: "enterprise", status: "completed" },
+  { id: "TX-104", amount: 25.50,  category: "cdn", status: "completed" },
+  { id: "TX-105", amount: 1200.0, category: "dedicated", status: "flagged" }
+]
+
+fn isCompleted(tx) -> tx.status == "completed"
+fn extractAmount(tx) -> tx.amount
+fn applyTax(amount, rate) -> amount * (1 + rate)
+fn formatCurrency(val) -> f"\${val.toFixed(2)}"
+
+let totalRevenue = rawTransactions
+  |> .filter(isCompleted)
+  |> .map(extractAmount)
+  |> .reduce((acc, x) -> acc + x, 0)
+  |> applyTax(_, 0.08)
+  |> formatCurrency()
+
+console.log(f"Processed Total Revenue: {totalRevenue}")
+
+fn classifyTransaction(tx) -> match tx with {
+  { status: "flagged" }             => "⚠️ Security Review Required",
+  { category: "refund" }            => "🔄 Process Refund Ticket",
+  { amount: a } if a > 1000         => "💎 High Value Enterprise Settlement",
+  { status: "completed", amount: a } => f"✅ Standard Settlement ({formatCurrency(a)})",
+  _                                 => "ℹ️ Pending Routine Processing"
+}
+
+for tx in rawTransactions {
+  let report = tx |> classifyTransaction()
+  console.log(f"[{tx.id}] {report}")
+}`,
+
+      blank: `// Write clean, expressive AduScript code here!
+let greeting = "Hello, World!"
+console.log(greeting)
+`
+    };
+
+    // DOM Elements
+    const editor = document.getElementById('code-editor');
+    const lineNumbers = document.getElementById('line-numbers');
+    const presetSelector = document.getElementById('preset-selector');
+    const btnRun = document.getElementById('btn-run');
+    const btnCopyJs = document.getElementById('btn-copy-js');
+    const jsViewer = document.getElementById('js-viewer');
+    const astViewer = document.getElementById('ast-viewer');
+    const tokensGrid = document.getElementById('tokens-grid');
+    const consoleBody = document.getElementById('console-body');
+    const btnClearConsole = document.getElementById('btn-clear-console');
+    const activeFilename = document.getElementById('active-filename');
+
+    // Intercept console.log to show in HUD
+    const originalLog = console.log;
+    const originalError = console.error;
+
+    function appendLog(msg, type = 'normal') {
+      const item = document.createElement('div');
+      item.className = `log-item ${type}`;
+      item.textContent = msg;
+      consoleBody.appendChild(item);
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    console.log = function (...args) {
+      originalLog.apply(console, args);
+      appendLog(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    };
+
+    console.error = function (...args) {
+      originalError.apply(console, args);
+      appendLog(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), 'error');
+    };
+
+    btnClearConsole.addEventListener('click', () => {
+      consoleBody.innerHTML = '';
+    });
+
+    // Update Line Numbers
+    function updateLineNumbers() {
+      const lines = editor.value.split('\n').length;
+      lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => i + 1).join('<br>');
+    }
+
+    editor.addEventListener('input', () => {
+      updateLineNumbers();
+      compileAndInspect();
+    });
+
+    editor.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+    });
+
+    // Tab Navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        const target = document.getElementById(btn.dataset.tab);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    // Preset Switching
+    presetSelector.addEventListener('change', (e) => {
+      const key = e.target.value;
+      if (PRESETS[key]) {
+        editor.value = PRESETS[key];
+        activeFilename.textContent = `${key}.ads`;
+        updateLineNumbers();
+        compileAndRun();
+      }
+    });
+
+    // Compiler Execution & Inspection
+    function compileAndInspect() {
+      const source = editor.value;
+      try {
+        const tokens = AduScript.tokenize(source);
+        renderTokens(tokens);
+
+        const ast = AduScript.parse(source);
+        astViewer.textContent = JSON.stringify(ast, null, 2);
+
+        const compiled = AduScript.compile(source, { moduleType: 'inline-runtime' });
+        jsViewer.textContent = compiled.code;
+      } catch (err) {
+        // syntax error display in AST/JS panes
+        jsViewer.textContent = `// Compilation Error:\n// ${err.message}`;
+      }
+    }
+
+    async function compileAndRun() {
+      compileAndInspect();
+      const source = editor.value;
+      try {
+        appendLog(`⚡ Compiling & executing AduScript module...`, 'normal');
+        await AduScript.run(source);
+        appendLog(`✔ Execution finished successfully.`, 'success');
+      } catch (err) {
+        console.error(err.message || err);
+      }
+    }
+
+    function renderTokens(tokens) {
+      tokensGrid.innerHTML = '';
+      tokens.slice(0, 80).forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'token-card';
+        card.innerHTML = `
+          <div class="token-type">${t.type}</div>
+          <div class="token-val">${escapeHtml(String(t.raw || t.value || ''))}</div>
+          <div class="token-pos">Line ${t.line}:${t.column}</div>
+        `;
+        tokensGrid.appendChild(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    btnRun.addEventListener('click', compileAndRun);
+
+    btnCopyJs.addEventListener('click', () => {
+      navigator.clipboard.writeText(jsViewer.textContent).then(() => {
+        const prevText = btnCopyJs.innerHTML;
+        btnCopyJs.innerHTML = '✔ Copied!';
+        setTimeout(() => { btnCopyJs.innerHTML = prevText; }, 2000);
+      });
+    });
+
+    // Initialize Default View
+    editor.value = PRESETS.scene;
+    updateLineNumbers();
+    setTimeout(compileAndRun, 100);
+  </script>
+</body>
+</html>

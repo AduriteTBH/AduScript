@@ -1,0 +1,41 @@
+{
+  "name": "aduscript",
+  "displayName": "AduScript Language Support",
+  "description": "Official language support, syntax highlighting, snippets, and file icons for AduScript (.ads)",
+  "version": "1.0.0",
+  "publisher": "aduscript",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "aduscript",
+        "aliases": ["AduScript", "aduscript", "ads"],
+        "extensions": [".ads"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/aduscript.svg",
+          "dark": "./icons/aduscript.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "aduscript",
+        "scopeName": "source.ads",
+        "path": "./syntaxes/aduscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "aduscript",
+        "path": "./snippets/aduscript.json"
+      }
+    ]
+  }
+}

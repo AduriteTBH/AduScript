@@ -1,0 +1,70 @@
+{
+  "AduScript State": {
+    "prefix": "state",
+    "body": ["state ${1:name} = ${2:initialValue}"],
+    "description": "Create a reactive state signal"
+  },
+  "AduScript Watch": {
+    "prefix": "watch",
+    "body": [
+      "watch ${1:target} => {",
+      "  ${0:// logic}",
+      "}"
+    ],
+    "description": "Watch a reactive signal for changes"
+  },
+  "AduScript Effect": {
+    "prefix": "effect",
+    "body": [
+      "effect {",
+      "  ${0:// reactive effect}",
+      "}"
+    ],
+    "description": "Create an automatic dependency-tracking reactive effect"
+  },
+  "AduScript Function": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:name}(${2:params}) {",
+      "  ${0:// body}",
+      "}"
+    ],
+    "description": "Declare a function"
+  },
+  "AduScript Single Expression Function": {
+    "prefix": "fnarrow",
+    "body": ["fn ${1:name}(${2:params}) -> ${0:expression}"],
+    "description": "Declare an auto-returning single expression function"
+  },
+  "AduScript Match": {
+    "prefix": "match",
+    "body": [
+      "let ${1:result} = match ${2:value} with {",
+      "  ${3:pattern} => ${4:body},",
+      "  _ => ${0:fallback}",
+      "}"
+    ],
+    "description": "Pattern matching expression"
+  },
+  "AduScript Use CDN": {
+    "prefix": "usecdn",
+    "body": ["use cdn:${1:three} as ${2:THREE}"],
+    "description": "Zero-boilerplate CDN import"
+  },
+  "AduScript HTML Template": {
+    "prefix": "html",
+    "body": [
+      "$adu.html`",
+      "  <div class=\"${1:card}\">",
+      "    ${0}",
+      "  </div>",
+      "`"
+    ],
+    "description": "Reactive HTML template literal"
+  },
+  "AduScript Mount": {
+    "prefix": "mount",
+    "body": ["$adu.mount(\"${1:#root}\", ${2:renderApp})"],
+    "description": "Mount reactive application"
+  }
+}

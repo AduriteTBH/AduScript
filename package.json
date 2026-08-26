@@ -1,0 +1,51 @@
+{
+  "name": "aduscript",
+  "version": "1.0.0",
+  "description": "AduScript - A clean, expressive, modern web programming language compiling to ECMAScript 2024+",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "browser": "dist/aduscript-browser.js",
+  "unpkg": "dist/aduscript-browser.js",
+  "jsdelivr": "dist/aduscript-browser.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "browser": "./dist/aduscript-browser.js"
+    },
+    "./browser": "./dist/aduscript-browser.js",
+    "./runtime": "./src/runtime.js"
+  },
+  "files": [
+    "src",
+    "dist",
+    "bin",
+    "README.md",
+    "SPECIFICATION.md",
+    "quickstart.html",
+    "AduScript Logo 128x128.svg",
+    "AduScript Logo 800x800.svg"
+  ],
+  "bin": {
+    "aduscript": "./bin/aduscript.js",
+    "ads": "./bin/aduscript.js"
+  },
+  "scripts": {
+    "test": "node tests/test_runner.js",
+    "build:browser": "node scripts/bundle-browser.js",
+    "demo": "node -e \"import('http').then(h => h.createServer((q,r)=>{const f=q.url==='/'?'/demo/index.html':q.url;import('fs').then(fs=>fs.readFile('.'+f,(e,d)=>{if(e){r.writeHead(404);r.end('404');}else{const t=f.endsWith('.html')?'text/html':f.endsWith('.js')?'application/javascript':f.endsWith('.ads')?'text/plain':f.endsWith('.css')?'text/css':'text/plain';r.writeHead(200,{'Content-Type':t});r.end(d);}}));}).listen(3000,()=>console.log('Demo server: http://localhost:3000/demo/index.html'));)\""
+  },
+  "keywords": [
+    "aduscript",
+    "compiler",
+    "programming-language",
+    "transpiler",
+    "reactive",
+    "pipeline-operator",
+    "pattern-matching",
+    "threejs",
+    "web-development"
+  ],
+  "author": "Adurite",
+  "license": "MIT"
+}

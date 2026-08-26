@@ -1,0 +1,4 @@
+node_modules/
+.adu_cache/
+.DS_Store
+*.log
